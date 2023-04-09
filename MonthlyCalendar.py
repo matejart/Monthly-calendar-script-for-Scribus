@@ -757,10 +757,8 @@ class calcHolidays:
             raise IndexError("No {}th day of month {}".format(n, month))
         return (year, month, day)
 
-    def importHolidays(self):
+    def importHolidays(self, holidaysFile: str):
         """ Import local holidays from '*holidays.txt'-file."""
-        holidaysFile = filedialog.askopenfilename(title="Open the \
-'holidays.txt'-file or cancel")
         holidaysList=list()
         try:
             csvfile = open(holidaysFile, mode="rt",  encoding="utf8")
@@ -816,10 +814,8 @@ class calcMoons:
         self.year = year
         self.utcdiff = utcdiff
 
-    def importMoons(self):
+    def importMoons(self, moonsFile: str):
         """ Import utc moon phases from '*moonphases.txt'-file."""
-        moonsFile = filedialog.askopenfilename(title="Open the \
-'moonphases.txt'-file or cancel")
         moonsList=list()
         try:
             csvfile = open(moonsFile, 'rt')
@@ -1158,8 +1154,10 @@ class TkCalendar(Frame):
         if self.holidaysVar.get() == 0: 
             holidaysList = list()
         else:
+            holidaysFile = filedialog.askopenfilename(title="Open the \
+'holidays.txt'-file or cancel")
             hol = calcHolidays(year)
-            holidaysList = hol.importHolidays()
+            holidaysList = hol.importHolidays(holidaysFile)
         # moon phases
         try:
             utcdiff = self.utcdiffVar.get().strip()
@@ -1173,8 +1171,10 @@ an integer between -12 and +12.')
         if self.moonsVar.get() == 0: 
             moonsList = list()
         else:
+            moonsFile = filedialog.askopenfilename(title="Open the \
+'moonphases.txt'-file or cancel")
             moon = calcMoons(year, utcdiff)
-            moonsList = moon.importMoons()
+            moonsList = moon.importMoons(moonsFile)
         # create calendar (finally)
         msg=messagebox.showinfo("INFO:", '  language=' + self.lang 
             + '\n  font=' + self.font+'\n')
