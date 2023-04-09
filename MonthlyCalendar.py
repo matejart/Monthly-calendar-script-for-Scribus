@@ -54,7 +54,56 @@ import csv
 import platform
 
 try:
-    from scribus import *
+    from scribus import (
+        ALIGN_CENTERED,
+        ALIGN_LEFT,
+        ALIGNV_BOTTOM,
+        ALIGNV_CENTERED,
+        ALIGNV_TOP,
+        createCharStyle,
+        createCustomLineStyle,
+        createImage,
+        createLayer,
+        createParagraphStyle,
+        createText,
+        defineColorCMYK,
+        deletePage,
+        deselectAll,
+        getFillColor,
+        getFontNames,
+        getPageMargins,
+        getPageSize,
+        getTextLength,
+        getUnit,
+        gotoPage,
+        haveDoc,
+        ICON_CRITICAL,
+        masterPageNames,
+        messageBox,
+        moveSelectionToBack,
+        newDocDialog,
+        newPage,
+        progressReset,
+        progressSet,
+        progressTotal,
+        redrawAll,
+        selectObject,
+        selectText,
+        setActiveLayer,
+        setBaseLine,
+        setCustomLineStyle,
+        setFillColor,
+        setFontSize,
+        setParagraphStyle,
+        setText,
+        setTextAlignment,
+        setTextColor,
+        setTextDistances,
+        setTextVerticalAlignment,
+        setUnit,
+        statusMessage,
+        UNIT_POINTS,
+    )
 except ImportError:
     print("This Python script is written for the Scribus \
       scripting interface.")
@@ -218,36 +267,36 @@ class ScMonthCalendar:
         originalUnit = getUnit()
         setUnit(UNIT_POINTS)
         self.setupDocVariables()
-        scribus.createCharStyle(name=self.cStylMonthHeading,font=self.cFont,
+        createCharStyle(name=self.cStylMonthHeading,font=self.cFont,
             fontsize=((self.rowSize * self.scalingFactor) // 1.5), fillcolor="txtMonthHeading")
-        scribus.createCharStyle(name=self.cStylDayNames, font=self.cFont,
+        createCharStyle(name=self.cStylDayNames, font=self.cFont,
             fontsize=(self.rowSize // 4), fillcolor="txtDayNames")
-        scribus.createCharStyle(name=self.cStylWeekNo,font=self.cFont,
+        createCharStyle(name=self.cStylWeekNo,font=self.cFont,
             fontsize=(self.rowSize // 4), fillcolor="txtWeekNo")
-        scribus.createCharStyle(name=self.cStylMoons,font=self.cFont,
+        createCharStyle(name=self.cStylMoons,font=self.cFont,
             fontsize=(self.rowSize // 4), fillcolor="txtDate")
-        scribus.createCharStyle(name=self.cStylHolidays, font=self.cFont,
+        createCharStyle(name=self.cStylHolidays, font=self.cFont,
             fontsize=(self.rowSize // 8), fillcolor="txtDate")
-        scribus.createCharStyle(name=self.cStylDate, font=self.cFont,
+        createCharStyle(name=self.cStylDate, font=self.cFont,
             fontsize=(self.rowSize // 2), fillcolor="txtDate")
-        scribus.createCharStyle(name=self.cStylMini, font=self.cFont,
+        createCharStyle(name=self.cStylMini, font=self.cFont,
             fontsize=(self.rowSize // 8), fillcolor="txtDate")
-        scribus.createParagraphStyle(name=self.pStyleMonthHeading, linespacingmode=0,
+        createParagraphStyle(name=self.pStyleMonthHeading, linespacingmode=0,
             linespacing=((self.rowSize*self.scalingFactor)//1.5), alignment=ALIGN_CENTERED,
             charstyle=self.cStylMonthHeading)
-        scribus.createParagraphStyle(name=self.pStyleDayNames, linespacingmode=2,
+        createParagraphStyle(name=self.pStyleDayNames, linespacingmode=2,
             alignment=ALIGN_CENTERED, firstindent=3,
             charstyle=self.cStylDayNames)
-        scribus.createParagraphStyle(name=self.pStyleWeekNo, alignment=ALIGN_CENTERED,
+        createParagraphStyle(name=self.pStyleWeekNo, alignment=ALIGN_CENTERED,
             charstyle=self.cStylWeekNo)
-        scribus.createParagraphStyle(name=self.pStyleMoons, alignment=ALIGN_CENTERED,
+        createParagraphStyle(name=self.pStyleMoons, alignment=ALIGN_CENTERED,
             charstyle=self.cStylMoons)
-        scribus.createParagraphStyle(name=self.pStyleHolidays,  linespacingmode=0,
+        createParagraphStyle(name=self.pStyleHolidays,  linespacingmode=0,
             linespacing=(self.rowSize//8),alignment=ALIGN_CENTERED,
             charstyle=self.cStylHolidays)
-        scribus.createParagraphStyle(name=self.pStyleDate, alignment=ALIGN_CENTERED,
+        createParagraphStyle(name=self.pStyleDate, alignment=ALIGN_CENTERED,
             charstyle=self.cStylDate)
-        scribus.createParagraphStyle(name=self.pStyleMini,  linespacingmode=1,
+        createParagraphStyle(name=self.pStyleMini,  linespacingmode=1,
             linespacing=(self.rowSize//8),alignment=ALIGN_CENTERED,
             charstyle=self.cStylMini)
         run = 0
@@ -315,25 +364,25 @@ class ScMonthCalendar:
         setBaseLine(baseLine, y * 0.8) # for correct aligment of weekdays names
                                                       #  with ascender and descender characters
         # line styles
-        scribus.createCustomLineStyle(self.gridLineStyle, [
+        createCustomLineStyle(self.gridLineStyle, [
             {
                 'Color': "gridColor",
                 'Width': 1
             }
         ]);
-        scribus.createCustomLineStyle(self.gridLineStyleMonthHeading, [
+        createCustomLineStyle(self.gridLineStyleMonthHeading, [
             {
                 'Color': "gridMonthHeading",
                 'Width': 1
             }
         ]);
-        scribus.createCustomLineStyle(self.gridLineStyleDayNames, [
+        createCustomLineStyle(self.gridLineStyleDayNames, [
             {
                 'Color': "gridDayNames",
                 'Width': 1
             }
         ]);
-        scribus.createCustomLineStyle(self.gridLineStyleWeekNo, [
+        createCustomLineStyle(self.gridLineStyleWeekNo, [
             {
                 'Color': "gridWeekNo",
                 'Width': 1
@@ -549,7 +598,7 @@ class ScMonthCalendar:
         setText(mtHd.upper() + " " + str(self.year), cel)
         deselectAll()
         selectObject(cel)
-        scribus.setParagraphStyle(self.pStyleMonthHeading, cel)
+        setParagraphStyle(self.pStyleMonthHeading, cel)
         setTextVerticalAlignment(ALIGNV_CENTERED, cel)
         setFillColor("fillMonthHeading", cel)
         setCustomLineStyle(self.gridLineStyleMonthHeading, cel)
