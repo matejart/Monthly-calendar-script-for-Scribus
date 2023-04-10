@@ -53,11 +53,13 @@ import datetime
 from datetime import date, timedelta
 import csv
 import platform
+from typing import Tuple
 
 try:
     from scribus import (
         ALIGN_CENTERED,
         ALIGN_LEFT,
+        ALIGN_RIGHT,
         ALIGNV_BOTTOM,
         ALIGNV_CENTERED,
         ALIGNV_TOP,
@@ -196,6 +198,14 @@ class MoonStyle:
         self.textVerticalAlignment = textVerticalAlignment
 
 ######################################################
+class CalendarStyle:
+    """ Represents style of the whole calendar. """
+
+    def __init__(self, fullRowCount: bool = True):
+        # Full row count always makes 6-row calendars. Set to False to get 5-row calendars.
+        self.fullRowCount = fullRowCount
+
+######################################################
 class ScMonthCalendar:
     """ Calendar matrix creator itself. One month per page."""
 
@@ -280,16 +290,25 @@ class ScMonthCalendar:
         self.pStyleMoons = "par_style_Moons"
         self.pStyleHolidays = "par_style_Holidays"
         self.pStyleDate = "par_style_Date"
+        self.pStyleWeek5Date = "par_style_Week_5_Date"
+        self.pStyleWeek6Date = "par_style_Week_6_Date"
         self.pStyleMini = "par_style_Mini"
         # line styles
         self.gridLineStyle = "grid_Line_Style"
         self.gridLineStyleDayNames = "grid_DayNames_Style"
         self.gridLineStyleWeekNo = "grid_WeekNo_Style"
         self.gridLineStyleMonthHeading = "grid_MonthHeading_Style"
+
         # customizable styles
+        self.calendarStyle = CalendarStyle()
         self.dateStyle = DateStyle()
+        # applies to month's week 5 of the 5-row calendars
+        self.dateWeek5Style = DateStyle(textAlignment=ALIGN_LEFT, textVerticalAlignment=ALIGNV_TOP)
+        # applies to month's week 6 of the 5-row calendars
+        self.dateWeek6Style = DateStyle(textAlignment=ALIGN_RIGHT, textVerticalAlignment=ALIGNV_BOTTOM)
         self.holidayStyle = HolidayStyle()
         self.moonStyle = MoonStyle(cFont=self.cFont)
+
         # other settings
         self.showProgress = True # set to False if Scribus stack-overflows
         self.firstPage = True # create only 2nd 3rd ... pages. No 1st one.
@@ -332,6 +351,10 @@ class ScMonthCalendar:
             linespacing=(self.rowSize//8),alignment=self.holidayStyle.textAlignment,
             charstyle=self.cStylHolidays)
         createParagraphStyle(name=self.pStyleDate, alignment=self.dateStyle.textAlignment,
+            charstyle=self.cStylDate)
+        createParagraphStyle(name=self.pStyleWeek5Date, alignment=self.dateWeek5Style.textAlignment,
+            charstyle=self.cStylDate)
+        createParagraphStyle(name=self.pStyleWeek6Date, alignment=self.dateWeek6Style.textAlignment,
             charstyle=self.cStylDate)
         createParagraphStyle(name=self.pStyleMini,  linespacingmode=1,
             linespacing=(self.rowSize//8),alignment=ALIGN_CENTERED,
@@ -384,6 +407,9 @@ class ScMonthCalendar:
         self.height = self.pageY - self.marginT - self.marginB
         # cell rows and cols
         self.rows = 8.0 # month heading 1.5 + weekday names 0.5 +  6 weeks
+        if not self.calendarStyle.fullRowCount:
+            # reduced row count calendar reuses its week 5 row for week 6 days
+            self.rows -= 1
         self.rowSize = (self.height - self.offsetY) / self.rows
         if self.weekNr:
             self.cols = 7.5 # weekNr column is 0.5 of weekday column
@@ -445,6 +471,20 @@ class ScMonthCalendar:
             createImage(self.marginL + self.offsetX, self.marginT,
                 self.width-self.offsetX, self.offsetY - self.marginY)
 
+    def _getTrailingDays(self, year: int, month: int) -> int:
+        """ Compute the number of days in the last week of the month. """
+        day1, ndays = calendar.monthrange(year, month)
+        day1 = (day1 - calendar.firstweekday()) % 7
+        return (day1 + ndays) % 7
+
+    def _getDateStyle(self, wnum: int, cnum: int, trailingDays: int) -> Tuple[object, DateStyle]:
+        if self.calendarStyle.fullRowCount or wnum < 4 or cnum >= trailingDays:
+            return (self.pStyleDate, self.dateStyle)
+        elif wnum == 4:
+            return (self.pStyleWeek5Date, self.dateWeek5Style)
+        else:
+            return (self.pStyleWeek6Date, self.dateWeek6Style)
+
     def createMonthCalendar(self, month, cal):
         """ Create a page and draw one month calendar on it """
         logging.debug(f"Creating month calendar for month {month}")
@@ -452,6 +492,7 @@ class ScMonthCalendar:
         if self.drawImg:
             self.createImg()
         setActiveLayer(self.layerCal)
+        trailingDays = self._getTrailingDays(self.year, month + 1)
         if self.miniCals: # draw mini calendars beside the month heading
             #     previous month
             colCnt = 0
@@ -486,7 +527,8 @@ class ScMonthCalendar:
         self.createHeader(calendar.month_name[month+1])
 
         rowCnt = 2.0
-        for week in cal:
+        for wnum, week in enumerate(cal):
+            logging.debug(f"Week: {week}")
             if self.weekNr:
                 cel = createText(self.marginL + self.offsetX,
                                  self.marginT + self.offsetY + rowCnt * self.rowSize, 
@@ -502,7 +544,11 @@ class ScMonthCalendar:
                 colCnt = 0.5
             else:
                 colCnt = 0
-            for day in week:
+            for cnum, day in enumerate(week):
+                if not self.calendarStyle.fullRowCount and day.month not in [month, month+1]:
+                    # we're in the next month of the already populated reduced row calendar
+                    break
+
                 cel = createText(self.marginL+self.offsetX + colCnt * self.colSize,
                                  self.marginT+self.offsetY + rowCnt * self.rowSize,
                                  self.colSize, self.rowSize)
@@ -510,11 +556,12 @@ class ScMonthCalendar:
                 setFillColor("fillDate", cel)
                 setCustomLineStyle(self.gridLineStyle, cel)
                 if day.month == (month+1):
+                    pStyleDate, dateStyle = self._getDateStyle(wnum, cnum, trailingDays)
                     setText(str(day.day), cel)
                     deselectAll()
                     selectObject(cel)
-                    setParagraphStyle(self.pStyleDate, cel)
-                    setTextVerticalAlignment(self.dateStyle.textVerticalAlignment, cel)
+                    setParagraphStyle(pStyleDate, cel)
+                    setTextVerticalAlignment(dateStyle.textVerticalAlignment, cel)
                     weekend = False # day is  weekend day
                     if calendar.firstweekday() == 6:
                         x = 1
@@ -554,6 +601,10 @@ class ScMonthCalendar:
                                 selectText(getTextLength(txtHoliday) - 1, 1, txtHoliday)
                                 setTextColor("None", txtHoliday)  # change "|"-character color to become invisible
                                 setActiveLayer(self.layerCal)
+                    if not self.calendarStyle.fullRowCount and wnum > 4:
+                        # prevent obscuring the date we are overlapping
+                        setFillColor("None", cel)
+
                     if self.drawMoons:
                         setActiveLayer(self.layerMoons)
                         for x in range(len(self.moonsList)): # draw moon phases
@@ -586,11 +637,13 @@ class ScMonthCalendar:
                         x = 6
                     if (int(colCnt) == x) or (int(colCnt) == 7):
                         setFillColor("fillWeekend2", cel)
-            rowCnt += 1
+            if self.calendarStyle.fullRowCount or wnum < 4:
+                rowCnt += 1
 
-        while rowCnt < 8:
-            self.createEmptyWeekRow(rowCnt)
-            rowCnt += 1
+        if self.calendarStyle.fullRowCount:
+            while rowCnt < 8:
+                self.createEmptyWeekRow(rowCnt)
+                rowCnt += 1
 
     def createEmptyWeekRow(self, rowCnt):
         """ Add empty week row(s) at bottom of month """
