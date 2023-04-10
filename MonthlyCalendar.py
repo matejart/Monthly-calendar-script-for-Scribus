@@ -47,6 +47,7 @@ and Bernhard Reiter which is provided with Scribus.
 from __future__ import division # overrules Python 2 integer division
 import sys
 import locale
+import logging
 import calendar
 import datetime
 from datetime import date, timedelta
@@ -412,6 +413,7 @@ class ScMonthCalendar:
 
     def createMonthCalendar(self, month, cal):
         """ Create a page and draw one month calendar on it """
+        logging.debug(f"Creating month calendar for month {month}")
         self.createLayout()
         if self.drawImg:
             self.createImg()
