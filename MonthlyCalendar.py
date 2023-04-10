@@ -166,6 +166,36 @@ localization = [['Bulgarian', 'CP1251', 'bg_BG.UTF8'],
     ['Swedish', 'CP1252', 'sv_SE.UTF8']]
 
 ######################################################
+class DateStyle:
+    """ Encapsulates cusomizable styles for a date. """
+
+    def __init__(self, textAlignment: str = ALIGN_CENTERED,
+                 textVerticalAlignment: str = ALIGNV_CENTERED):
+        self.textAlignment = textAlignment
+        self.textVerticalAlignment = textVerticalAlignment
+
+######################################################
+class HolidayStyle:
+    """ Encapsulates cusomizable styles for a holiday date. """
+
+    def __init__(self, textAlignment: str = ALIGN_CENTERED,
+                 textVerticalAlignment: str = ALIGNV_BOTTOM):
+        self.textAlignment = textAlignment
+        self.textVerticalAlignment = textVerticalAlignment
+
+######################################################
+class MoonStyle:
+    """ Encapsulates cusomizable styles for a moon phase glyph. """
+
+    def __init__(self, cFont: str, textAlignment: str = ALIGN_CENTERED,
+                 textVerticalAlignmentSmallCell: str = ALIGNV_TOP,
+                 textVerticalAlignment: str = ALIGNV_CENTERED):
+        self.cFont = cFont
+        self.textAlignment = textAlignment
+        self.textVerticalAlignmentSmallCell = textVerticalAlignmentSmallCell
+        self.textVerticalAlignment = textVerticalAlignment
+
+######################################################
 class ScMonthCalendar:
     """ Calendar matrix creator itself. One month per page."""
 
@@ -256,6 +286,10 @@ class ScMonthCalendar:
         self.gridLineStyleDayNames = "grid_DayNames_Style"
         self.gridLineStyleWeekNo = "grid_WeekNo_Style"
         self.gridLineStyleMonthHeading = "grid_MonthHeading_Style"
+        # customizable styles
+        self.dateStyle = DateStyle()
+        self.holidayStyle = HolidayStyle()
+        self.moonStyle = MoonStyle(cFont=self.cFont)
         # other settings
         self.showProgress = True # set to False if Scribus stack-overflows
         self.firstPage = True # create only 2nd 3rd ... pages. No 1st one.
@@ -276,7 +310,7 @@ class ScMonthCalendar:
             fontsize=(self.rowSize // 4), fillcolor="txtDayNames")
         createCharStyle(name=self.cStylWeekNo,font=self.cFont,
             fontsize=(self.rowSize // 4), fillcolor="txtWeekNo")
-        createCharStyle(name=self.cStylMoons,font=self.cFont,
+        createCharStyle(name=self.cStylMoons,font=self.moonStyle.cFont,
             fontsize=(self.rowSize // 4), fillcolor="txtDate")
         createCharStyle(name=self.cStylHolidays, font=self.cFont,
             fontsize=(self.rowSize // 8), fillcolor="txtDate")
@@ -292,12 +326,12 @@ class ScMonthCalendar:
             charstyle=self.cStylDayNames)
         createParagraphStyle(name=self.pStyleWeekNo, alignment=ALIGN_CENTERED,
             charstyle=self.cStylWeekNo)
-        createParagraphStyle(name=self.pStyleMoons, alignment=ALIGN_CENTERED,
+        createParagraphStyle(name=self.pStyleMoons, alignment=self.moonStyle.textAlignment,
             charstyle=self.cStylMoons)
         createParagraphStyle(name=self.pStyleHolidays,  linespacingmode=0,
-            linespacing=(self.rowSize//8),alignment=ALIGN_CENTERED,
+            linespacing=(self.rowSize//8),alignment=self.holidayStyle.textAlignment,
             charstyle=self.cStylHolidays)
-        createParagraphStyle(name=self.pStyleDate, alignment=ALIGN_CENTERED,
+        createParagraphStyle(name=self.pStyleDate, alignment=self.dateStyle.textAlignment,
             charstyle=self.cStylDate)
         createParagraphStyle(name=self.pStyleMini,  linespacingmode=1,
             linespacing=(self.rowSize//8),alignment=ALIGN_CENTERED,
@@ -480,7 +514,7 @@ class ScMonthCalendar:
                     deselectAll()
                     selectObject(cel)
                     setParagraphStyle(self.pStyleDate, cel)
-                    setTextVerticalAlignment(ALIGNV_CENTERED, cel)
+                    setTextVerticalAlignment(self.dateStyle.textVerticalAlignment, cel)
                     weekend = False # day is  weekend day
                     if calendar.firstweekday() == 6:
                         x = 1
@@ -514,7 +548,7 @@ class ScMonthCalendar:
                                 selectObject(txtHoliday)
                                 setParagraphStyle(self.pStyleHolidays, txtHoliday)
                                 setTextDistances(0, 0,  0, self.rowSize * 0.05, txtHoliday)
-                                setTextVerticalAlignment(ALIGNV_BOTTOM, txtHoliday)
+                                setTextVerticalAlignment(self.holidayStyle.textVerticalAlignment, txtHoliday)
                                 selectText(0, 1, txtHoliday)
                                 setTextColor("None", txtHoliday)  # change "|"-character color to become invisible
                                 selectText(getTextLength(txtHoliday) - 1, 1, txtHoliday)
@@ -534,11 +568,11 @@ class ScMonthCalendar:
                                 setParagraphStyle(self.pStyleMoons, cel)
                                 setTextDistances(self.colSize * 0.05, 0,  self.rowSize * 0.05, 
                                     self.rowSize * 0.05, cel)
-                                setTextAlignment(ALIGN_LEFT, cel)
+                                setTextAlignment(self.moonStyle.textAlignment, cel)
                                 if self.smallCel:
-                                    setTextVerticalAlignment(ALIGNV_TOP, cel)
+                                    setTextVerticalAlignment(self.moonStyle.textVerticalAlignmentSmallCell, cel)
                                 else:
-                                    setTextVerticalAlignment(ALIGNV_CENTERED, cel)
+                                    setTextVerticalAlignment(self.moonStyle.textVerticalAlignment, cel)
                                     setFontSize(self.rowSize // 3, cel)
                                 if weekend:
                                     setTextColor("txtWeekend", cel)
