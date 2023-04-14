@@ -172,18 +172,27 @@ class DateStyle:
     """ Encapsulates cusomizable styles for a date. """
 
     def __init__(self, textAlignment: str = ALIGN_CENTERED,
-                 textVerticalAlignment: str = ALIGNV_CENTERED):
+                 textVerticalAlignment: str = ALIGNV_CENTERED,
+                 fontscale: float = 0.5,
+                 marginScale: float = 0.0):
         self.textAlignment = textAlignment
         self.textVerticalAlignment = textVerticalAlignment
+        # font scale where 1.0 fills up the whole row, 0.5 half the row, etc.
+        self.fontscale = fontscale
+        # text margin at the scale of the row/column
+        self.marginScale = marginScale
 
 ######################################################
 class HolidayStyle:
     """ Encapsulates cusomizable styles for a holiday date. """
 
     def __init__(self, textAlignment: str = ALIGN_CENTERED,
-                 textVerticalAlignment: str = ALIGNV_BOTTOM):
+                 textVerticalAlignment: str = ALIGNV_BOTTOM,
+                 fontscale: float = 0.125):
         self.textAlignment = textAlignment
         self.textVerticalAlignment = textVerticalAlignment
+        # font scale where 1.0 fills up the whole row, 0.5 half the row, etc.
+        self.fontscale = fontscale
 
 ######################################################
 class MoonStyle:
@@ -332,9 +341,9 @@ class ScMonthCalendar:
         createCharStyle(name=self.cStylMoons,font=self.moonStyle.cFont,
             fontsize=(self.rowSize // 4), fillcolor="txtDate")
         createCharStyle(name=self.cStylHolidays, font=self.cFont,
-            fontsize=(self.rowSize // 8), fillcolor="txtDate")
+            fontsize=(self.rowSize * self.holidayStyle.fontscale), fillcolor="txtDate")
         createCharStyle(name=self.cStylDate, font=self.cFont,
-            fontsize=(self.rowSize // 2), fillcolor="txtDate")
+            fontsize=(self.rowSize * self.dateStyle.fontscale), fillcolor="txtDate")
         createCharStyle(name=self.cStylMini, font=self.cFont,
             fontsize=(self.rowSize // 8), fillcolor="txtDate")
         createParagraphStyle(name=self.pStyleMonthHeading, linespacingmode=0,
@@ -562,6 +571,11 @@ class ScMonthCalendar:
                     selectObject(cel)
                     setParagraphStyle(pStyleDate, cel)
                     setTextVerticalAlignment(dateStyle.textVerticalAlignment, cel)
+                    setTextDistances(
+                        self.colSize*self.dateStyle.marginScale, self.colSize*self.dateStyle.marginScale,
+                        self.rowSize*self.dateStyle.marginScale, self.rowSize*self.dateStyle.marginScale,
+                        cel
+                    )
                     weekend = False # day is  weekend day
                     if calendar.firstweekday() == 6:
                         x = 1
