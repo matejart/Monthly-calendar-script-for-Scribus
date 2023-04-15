@@ -256,10 +256,12 @@ class ScMonthCalendar:
         self.gridLineStyleWeekNo = "grid_WeekNo_Style"
         self.gridLineStyleMonthHeading = "grid_MonthHeading_Style"
         # other settings
+        self.showProgress = True # set to False if Scribus stack-overflows
         self.firstPage = True # create only 2nd 3rd ... pages. No 1st one.
         calendar.setfirstweekday(firstDay)
-        progressTotal(len(months))
- 
+        if self.showProgress:
+            progressTotal(len(months))
+
     def createCalendar(self):
         """ Walk through months dict and call monthly sheet """
         if not newDocDialog():
@@ -302,7 +304,8 @@ class ScMonthCalendar:
         run = 0
         for i in self.months:
             run += 1
-            progressSet(run)
+            if self.showProgress:
+                progressSet(run)
             cal = self.mycal.monthdatescalendar(self.year, i + 1)
             self.createMonthCalendar(i, cal)
         setUnit(originalUnit)
