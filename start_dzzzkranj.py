@@ -84,6 +84,7 @@ def createCaledar(year: int, month: int) -> None:
         holidaysList=holidaysList,
         moonsList=moonsList
     )
+    cal.showProgress = False
     cal.dateStyle = dzzzDateStyle
     cal.holidayStyle = dzzzHolidayStyle
     cal.moonStyle = dzzzMoonStyle

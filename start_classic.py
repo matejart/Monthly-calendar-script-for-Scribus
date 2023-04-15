@@ -65,6 +65,7 @@ def createCaledar(year: int, month: int) -> None:
         holidaysList=holidaysList,
         moonsList=moonsList
     )
+    cal.showProgress = False
     err = cal.createCalendar()
     if err != None:
         messageBox("Napaka", err, icon=ICON_CRITICAL)
