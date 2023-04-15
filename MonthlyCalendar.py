@@ -188,11 +188,16 @@ class HolidayStyle:
 
     def __init__(self, textAlignment: str = ALIGN_CENTERED,
                  textVerticalAlignment: str = ALIGNV_BOTTOM,
-                 fontscale: float = 0.125):
+                 fontscale: float = 0.125,
+                 marginScale: float = 0.05,
+                 enableFirstLineOffset: bool = True):
         self.textAlignment = textAlignment
         self.textVerticalAlignment = textVerticalAlignment
         # font scale where 1.0 fills up the whole row, 0.5 half the row, etc.
         self.fontscale = fontscale
+        # text margin at the scale of the row/column
+        self.marginScale = marginScale
+        self.enableFirstLineOffset = enableFirstLineOffset
 
 ######################################################
 class MoonStyle:
@@ -357,7 +362,7 @@ class ScMonthCalendar:
         createParagraphStyle(name=self.pStyleMoons, alignment=self.moonStyle.textAlignment,
             charstyle=self.cStylMoons)
         createParagraphStyle(name=self.pStyleHolidays,  linespacingmode=0,
-            linespacing=(self.rowSize//8),alignment=self.holidayStyle.textAlignment,
+            linespacing=(self.rowSize * self.holidayStyle.fontscale),alignment=self.holidayStyle.textAlignment,
             charstyle=self.cStylHolidays)
         createParagraphStyle(name=self.pStyleDate, alignment=self.dateStyle.textAlignment,
             charstyle=self.cStylDate)
@@ -604,16 +609,26 @@ class ScMonthCalendar:
                             txtHoliday = createText(self.marginL+self.offsetX + (colCnt - 1)* self.colSize,
                                 self.marginT+self.offsetY + rowCnt * self.rowSize,
                                 self.colSize, self.rowSize)
-                            setText("|" + self.holidaysList[x][3] + "|", txtHoliday)
+                            holidayText = self.holidaysList[x][3]
+                            if self.holidayStyle.enableFirstLineOffset:
+                                holidayText = f"|{holidayText}|"
+                            setText(holidayText, txtHoliday)
                             deselectAll()
                             selectObject(txtHoliday)
                             setParagraphStyle(self.pStyleHolidays, txtHoliday)
-                            setTextDistances(0, 0,  0, self.rowSize * 0.05, txtHoliday)
+                            setTextDistances(
+                                self.colSize*self.holidayStyle.marginScale,
+                                self.colSize*self.holidayStyle.marginScale,
+                                self.rowSize*self.holidayStyle.marginScale,
+                                self.rowSize*self.holidayStyle.marginScale,
+                                txtHoliday
+                            )
                             setTextVerticalAlignment(self.holidayStyle.textVerticalAlignment, txtHoliday)
-                            selectText(0, 1, txtHoliday)
-                            setTextColor("None", txtHoliday)  # change "|"-character color to become invisible
-                            selectText(getTextLength(txtHoliday) - 1, 1, txtHoliday)
-                            setTextColor("None", txtHoliday)  # change "|"-character color to become invisible
+                            if self.holidayStyle.enableFirstLineOffset:
+                                selectText(0, 1, txtHoliday)
+                                setTextColor("None", txtHoliday)  # change "|"-character color to become invisible
+                                selectText(getTextLength(txtHoliday) - 1, 1, txtHoliday)
+                                setTextColor("None", txtHoliday)  # change "|"-character color to become invisible
                             setActiveLayer(self.layerCal)
                     if not self.calendarStyle.fullRowCount and wnum > 4:
                         # prevent obscuring the date we are overlapping
