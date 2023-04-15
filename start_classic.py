@@ -4,6 +4,7 @@
 import calendar
 import locale
 import logging
+from typing import List
 from MonthlyCalendar import CalendarStyle, DateStyle, HolidayStyle, MoonStyle, calcHolidays, calcMoons, ScMonthCalendar
 
 logging.basicConfig(filename="U:\\tmp\\scribus-calendar.log", level=logging.DEBUG)
@@ -18,8 +19,7 @@ except ImportError as e:
     sys.exit(1)
 
 
-def createCaledar(year: int, month: int) -> None:
-    months = [month]
+def createCaledar(year: int, months: List[int]) -> None:
     firstDay = calendar.MONDAY
     weekNr = False
     weekNrHd="T"
@@ -72,7 +72,7 @@ def createCaledar(year: int, month: int) -> None:
 
 
 def main():
-    createCaledar(2023, 6)
+    createCaledar(2023, range(12))
 
 if __name__ == '__main__':
     main()
