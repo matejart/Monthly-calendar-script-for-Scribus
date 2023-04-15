@@ -55,7 +55,8 @@ def createCaledar(year: int, months: List[int]) -> None:
     dzzzHolidayStyle = HolidayStyle(
         textAlignment=ALIGN_LEFT,
         textVerticalAlignment=ALIGNV_TOP,
-        fontscale=0.2
+        fontscale=0.2,
+        enableFirstLineOffset=False
     )
 
     dzzzMoonStyle = MoonStyle(
