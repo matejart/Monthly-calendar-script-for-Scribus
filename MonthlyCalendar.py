@@ -587,34 +587,34 @@ class ScMonthCalendar:
                         setFillColor("fillWeekend", cel)
                     holidayColor = False # holiday
                     for x in range(len(self.holidaysList)):
-                            if (self.holidaysList[x][0] == (day.year) and
-                                self.holidaysList[x][1] == str(day.month) and
-                                self.holidaysList[x][2] == str(day.day)): 
-                                if self.holidaysList[x][4] == '1':
-                                    holidayColor = True
-                                    setTextColor("txtHoliday", cel)
-                                    setFillColor("fillHoliday", cel)
+                        if (self.holidaysList[x][0] == (day.year) and
+                            self.holidaysList[x][1] == str(day.month) and
+                            self.holidaysList[x][2] == str(day.day)):
+                            if self.holidaysList[x][4] == '1':
+                                holidayColor = True
+                                setTextColor("txtHoliday", cel)
+                                setFillColor("fillHoliday", cel)
+                            else:
+                                setTextColor("txtSpecialDate", cel)
+                                if getFillColor(cel) == "fillWeekend":
+                                    setFillColor("fillWeekend", cel)
                                 else:
-                                    setTextColor("txtSpecialDate", cel)
-                                    if getFillColor(cel) == "fillWeekend":
-                                        setFillColor("fillWeekend", cel)
-                                    else:
-                                        setFillColor("fillSpecialDate", cel)
-                                setActiveLayer(self.layerHolidays)
-                                txtHoliday = createText(self.marginL+self.offsetX + (colCnt - 1)* self.colSize,
-                                    self.marginT+self.offsetY + rowCnt * self.rowSize,
-                                    self.colSize, self.rowSize)
-                                setText("|" + self.holidaysList[x][3] + "|", txtHoliday)
-                                deselectAll()
-                                selectObject(txtHoliday)
-                                setParagraphStyle(self.pStyleHolidays, txtHoliday)
-                                setTextDistances(0, 0,  0, self.rowSize * 0.05, txtHoliday)
-                                setTextVerticalAlignment(self.holidayStyle.textVerticalAlignment, txtHoliday)
-                                selectText(0, 1, txtHoliday)
-                                setTextColor("None", txtHoliday)  # change "|"-character color to become invisible
-                                selectText(getTextLength(txtHoliday) - 1, 1, txtHoliday)
-                                setTextColor("None", txtHoliday)  # change "|"-character color to become invisible
-                                setActiveLayer(self.layerCal)
+                                    setFillColor("fillSpecialDate", cel)
+                            setActiveLayer(self.layerHolidays)
+                            txtHoliday = createText(self.marginL+self.offsetX + (colCnt - 1)* self.colSize,
+                                self.marginT+self.offsetY + rowCnt * self.rowSize,
+                                self.colSize, self.rowSize)
+                            setText("|" + self.holidaysList[x][3] + "|", txtHoliday)
+                            deselectAll()
+                            selectObject(txtHoliday)
+                            setParagraphStyle(self.pStyleHolidays, txtHoliday)
+                            setTextDistances(0, 0,  0, self.rowSize * 0.05, txtHoliday)
+                            setTextVerticalAlignment(self.holidayStyle.textVerticalAlignment, txtHoliday)
+                            selectText(0, 1, txtHoliday)
+                            setTextColor("None", txtHoliday)  # change "|"-character color to become invisible
+                            selectText(getTextLength(txtHoliday) - 1, 1, txtHoliday)
+                            setTextColor("None", txtHoliday)  # change "|"-character color to become invisible
+                            setActiveLayer(self.layerCal)
                     if not self.calendarStyle.fullRowCount and wnum > 4:
                         # prevent obscuring the date we are overlapping
                         setFillColor("None", cel)
