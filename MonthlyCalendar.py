@@ -500,6 +500,19 @@ class ScMonthCalendar:
         else:
             return (self.pStyleWeek6Date, self.dateWeek6Style)
 
+    def _drawDate(self, pStyleDate: object, dateStyle: DateStyle, day: datetime.date,
+                  cel: object):
+        setText(str(day.day), cel)
+        deselectAll()
+        selectObject(cel)
+        setParagraphStyle(pStyleDate, cel)
+        setTextVerticalAlignment(dateStyle.textVerticalAlignment, cel)
+        setTextDistances(
+            self.colSize*self.dateStyle.marginScale, self.colSize*self.dateStyle.marginScale,
+            self.rowSize*self.dateStyle.marginScale, self.rowSize*self.dateStyle.marginScale,
+            cel
+        )
+
     def createMonthCalendar(self, month, cal):
         """ Create a page and draw one month calendar on it """
         logging.debug(f"Creating month calendar for month {month}")
@@ -568,29 +581,18 @@ class ScMonthCalendar:
                                  self.marginT+self.offsetY + rowCnt * self.rowSize,
                                  self.colSize, self.rowSize)
                 colCnt += 1
+                x = 1 if calendar.firstweekday() == 6 else 6
+                weekend = (int(colCnt) == x) or (int(colCnt) == 7)
+
                 setFillColor("fillDate", cel)
                 setCustomLineStyle(self.gridLineStyle, cel)
                 if day.month == (month+1):
                     pStyleDate, dateStyle = self._getDateStyle(wnum, cnum, trailingDays)
-                    setText(str(day.day), cel)
-                    deselectAll()
-                    selectObject(cel)
-                    setParagraphStyle(pStyleDate, cel)
-                    setTextVerticalAlignment(dateStyle.textVerticalAlignment, cel)
-                    setTextDistances(
-                        self.colSize*self.dateStyle.marginScale, self.colSize*self.dateStyle.marginScale,
-                        self.rowSize*self.dateStyle.marginScale, self.rowSize*self.dateStyle.marginScale,
-                        cel
-                    )
-                    weekend = False # day is  weekend day
-                    if calendar.firstweekday() == 6:
-                        x = 1
-                    else:
-                        x = 6
-                    if (int(colCnt) == x) or (int(colCnt) == 7):
-                        weekend = True
+                    self._drawDate(pStyleDate, dateStyle, day, cel)
+                    if weekend:
                         setTextColor("txtWeekend", cel)
                         setFillColor("fillWeekend", cel)
+
                     holidayColor = False # holiday
                     for x in range(len(self.holidaysList)):
                         if (self.holidaysList[x][0] == (day.year) and
@@ -661,11 +663,7 @@ class ScMonthCalendar:
                                     setTextColor("txtHoliday", cel)
                         setActiveLayer(self.layerCal)
                 else:  # fill previous or next month empty weekend cells
-                    if calendar.firstweekday() == 6:
-                        x = 1
-                    else:
-                        x = 6
-                    if (int(colCnt) == x) or (int(colCnt) == 7):
+                    if weekend:
                         setFillColor("fillWeekend2", cel)
             if self.calendarStyle.fullRowCount or wnum < 4:
                 rowCnt += 1
