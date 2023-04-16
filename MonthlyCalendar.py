@@ -486,10 +486,11 @@ class ScMonthCalendar:
                 self.width-self.offsetX, self.offsetY - self.marginY)
 
     def _getTrailingDays(self, year: int, month: int) -> int:
-        """ Compute the number of days in the last week of the month. """
+        """ Compute the number of days in the 6th week of the month. """
         day1, ndays = calendar.monthrange(year, month)
         day1 = (day1 - calendar.firstweekday()) % 7
-        return (day1 + ndays) % 7
+        nCels = day1 + ndays
+        return nCels % 7 if nCels > 35 else 0
 
     def _getDateStyle(self, wnum: int, cnum: int, trailingDays: int) -> Tuple[object, DateStyle]:
         if self.calendarStyle.fullRowCount or wnum < 4 or cnum >= trailingDays:
@@ -559,7 +560,7 @@ class ScMonthCalendar:
             else:
                 colCnt = 0
             for cnum, day in enumerate(week):
-                if not self.calendarStyle.fullRowCount and day.month not in [month, month+1]:
+                if not self.calendarStyle.fullRowCount and day.month not in [month, month+1] and wnum > 4:
                     # we're in the next month of the already populated reduced row calendar
                     break
 
