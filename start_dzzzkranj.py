@@ -23,10 +23,10 @@ def createCaledar(year: int, months: List[int]) -> None:
     firstDay = calendar.MONDAY
     weekNr = False
     weekNrHd="T"
-    offsetX=0.0
+    offsetX=123.59
     marginX=0.0
     offsetY=0.0
-    marginY=0.0
+    marginY=90.71
     drawImg=False
     miniCals=False
     cFont="Futura PT Light"
@@ -55,7 +55,7 @@ def createCaledar(year: int, months: List[int]) -> None:
     dzzzHolidayStyle = HolidayStyle(
         textAlignment=ALIGN_LEFT,
         textVerticalAlignment=ALIGNV_TOP,
-        fontscale=0.2,
+        fontscale=0.15,
         enableFirstLineOffset=False
     )
 
