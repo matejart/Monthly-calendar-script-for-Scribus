@@ -215,9 +215,12 @@ class MoonStyle:
 class CalendarStyle:
     """ Represents style of the whole calendar. """
 
-    def __init__(self, fullRowCount: bool = True):
+    def __init__(self, fullRowCount: bool = True,
+                 fillAllDays: bool = False):
         # Full row count always makes 6-row calendars. Set to False to get 5-row calendars.
         self.fullRowCount = fullRowCount
+        # Show date numbers for any previous and next month's days (first and last week)
+        self.fillAllDays = fillAllDays
 
 ######################################################
 class ScMonthCalendar:
@@ -397,9 +400,11 @@ class ScMonthCalendar:
         defineColorCMYK("txtWeekNo", 0, 0, 0, 0) # default is White
         defineColorCMYK("fillDate", 0, 0, 0, 0) # default is White
         defineColorCMYK("txtDate", 0, 0, 0, 255) # default is Black
+        defineColorCMYK("txtDate2", 0, 0, 0, 128) # default is Middle Grey
         defineColorCMYK("fillWeekend", 0, 0, 0, 25) # default is Light Grey
         defineColorCMYK("fillWeekend2", 0, 0, 0, 25) # default is Light Grey
         defineColorCMYK("txtWeekend", 0, 0, 0, 200) # default is Dark Grey
+        defineColorCMYK("txtWeekend2", 0, 0, 0, 96)
         defineColorCMYK("fillHoliday", 0, 0, 0, 25) # default is Light Grey
         defineColorCMYK("txtHoliday", 0, 234, 246, 0) # default is Red
         defineColorCMYK("fillSpecialDate", 0, 0, 0, 0) # default is White
@@ -662,7 +667,13 @@ class ScMonthCalendar:
                                 if holidayColor:
                                     setTextColor("txtHoliday", cel)
                         setActiveLayer(self.layerCal)
-                else:  # fill previous or next month empty weekend cells
+                else:  # fill previous or next month cells
+                    if self.calendarStyle.fillAllDays:
+                        self._drawDate(self.pStyleDate, self.dateStyle, day, cel)
+                        if weekend:
+                            setTextColor("txtWeekend2", cel)
+                        else:
+                            setTextColor("txtDate2", cel)
                     if weekend:
                         setFillColor("fillWeekend2", cel)
             if self.calendarStyle.fullRowCount or wnum < 4:
