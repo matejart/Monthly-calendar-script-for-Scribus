@@ -68,7 +68,9 @@ def createCaledar(year: int, months: List[int]) -> None:
 
     calendarStyle = CalendarStyle(
         fullRowCount=False,
-        fillAllDays=True
+        fillAllDays=True,
+        headerDisplayYear=False,
+        headerMonthUpperCase=False
     )
     
     cal = ScMonthCalendar(
