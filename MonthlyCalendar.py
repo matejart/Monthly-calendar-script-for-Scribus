@@ -216,11 +216,17 @@ class CalendarStyle:
     """ Represents style of the whole calendar. """
 
     def __init__(self, fullRowCount: bool = True,
-                 fillAllDays: bool = False):
+                 fillAllDays: bool = False,
+                 headerDisplayYear: bool = True,
+                 headerMonthUpperCase: bool = True):
         # Full row count always makes 6-row calendars. Set to False to get 5-row calendars.
         self.fullRowCount = fullRowCount
         # Show date numbers for any previous and next month's days (first and last week)
         self.fillAllDays = fillAllDays
+        # Display year in the month's calendar's header?
+        self.headerDisplayYear = headerDisplayYear
+        # Use all upper case for month?
+        self.headerMonthUpperCase = headerMonthUpperCase
 
 ######################################################
 class ScMonthCalendar:
@@ -726,7 +732,10 @@ class ScMonthCalendar:
         cel = createText(self.marginL + self.offsetX, self.marginT + self.offsetY,
             self.width - self.offsetX, self.rowSize * 1.5)
         mtHd = monthName
-        setText(mtHd.upper() + " " + str(self.year), cel)
+        headerStrs = [mtHd.upper() if self.calendarStyle.headerMonthUpperCase else mtHd]
+        if self.calendarStyle.headerDisplayYear:
+            headerStrs.append(str(self.year))
+        setText(" ".join(headerStrs), cel)
         deselectAll()
         selectObject(cel)
         setParagraphStyle(self.pStyleMonthHeading, cel)
