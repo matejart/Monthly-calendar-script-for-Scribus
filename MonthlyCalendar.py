@@ -72,7 +72,6 @@ try:
         defineColorCMYK,
         deletePage,
         deselectAll,
-        getFillColor,
         getFontNames,
         getPageMargins,
         getPageSize,
@@ -240,6 +239,7 @@ class ColorScheme:
 
     def __init__(self):
         """ Generate the default color scheme. """
+        self.monthColors = False # Should each month have a different colour scheme?
         self.colors = dict(
             fillMonthHeading=ColorScheme.WHITE_CMYK,
             txtMonthHeading=ColorScheme.BLACK_CMYK,
@@ -264,6 +264,21 @@ class ColorScheme:
             gridDayNames=ColorScheme.MIDDLE_GREY_CMYK,
             gridWeekNo=ColorScheme.MIDDLE_GREY_CMYK,
         )
+
+    @classmethod
+    def uniformMonthScheme(cls):
+        """ Same as the default, but with per-month colours. """
+        colorScheme = ColorScheme()
+        colorScheme.monthColors = True
+        monthCustomNames = [
+            "txtDate2", "txtWeekend", "txtWeekend2", "txtHoliday", "txtSpecialDate",
+        ]
+        for name in monthCustomNames:
+            cmyk = colorScheme.colors.pop(name)
+            for month in range(1, 13):
+                colorScheme.colors[f"{name}-m{month}"] = cmyk
+
+        return colorScheme
 
 ######################################################
 class ScMonthCalendar:
@@ -595,6 +610,7 @@ class ScMonthCalendar:
         self.createHeader(calendar.month_name[month+1])
 
         rowCnt = 2.0
+        mtc = f"-m{month + 1}" if self.colorScheme.monthColors else ""
         for wnum, week in enumerate(cal):
             logging.debug(f"Week: {week}")
             if self.weekNr:
@@ -629,7 +645,7 @@ class ScMonthCalendar:
                     pStyleDate, dateStyle = self._getDateStyle(wnum, cnum, trailingDays)
                     self._drawDate(pStyleDate, dateStyle, day, cel)
                     if weekend:
-                        setTextColor("txtWeekend", cel)
+                        setTextColor(f"txtWeekend{mtc}", cel)
                         setFillColor("fillWeekend", cel)
 
                     holidayColor = False # holiday
@@ -639,13 +655,13 @@ class ScMonthCalendar:
                             self.holidaysList[x][2] == str(day.day)):
                             if self.holidaysList[x][4] == '1':
                                 holidayColor = True
-                                setTextColor("txtHoliday", cel)
+                                setTextColor(f"txtHoliday{mtc}", cel)
                                 setFillColor("fillHoliday", cel)
                             else:
-                                setTextColor("txtSpecialDate", cel)
-                                if getFillColor(cel) == "fillWeekend":
+                                if weekend:
                                     setFillColor("fillWeekend", cel)
                                 else:
+                                    setTextColor(f"txtSpecialDate{mtc}", cel)
                                     setFillColor("fillSpecialDate", cel)
                             setActiveLayer(self.layerHolidays)
                             txtHoliday = createText(self.marginL+self.offsetX + (colCnt - 1)* self.colSize,
@@ -697,17 +713,17 @@ class ScMonthCalendar:
                                     setTextVerticalAlignment(self.moonStyle.textVerticalAlignment, cel)
                                     setFontSize(self.rowSize // 3, cel)
                                 if weekend:
-                                    setTextColor("txtWeekend", cel)
+                                    setTextColor(f"txtWeekend{mtc}", cel)
                                 if holidayColor:
-                                    setTextColor("txtHoliday", cel)
+                                    setTextColor(f"txtHoliday{mtc}", cel)
                         setActiveLayer(self.layerCal)
                 else:  # fill previous or next month cells
                     if self.calendarStyle.fillAllDays:
                         self._drawDate(self.pStyleDate, self.dateStyle, day, cel)
                         if weekend:
-                            setTextColor("txtWeekend2", cel)
+                            setTextColor(f"txtWeekend2{mtc}", cel)
                         else:
-                            setTextColor("txtDate2", cel)
+                            setTextColor(f"txtDate2{mtc}", cel)
                     if weekend:
                         setFillColor("fillWeekend2", cel)
             if self.calendarStyle.fullRowCount or wnum < 4:
