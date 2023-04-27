@@ -235,7 +235,7 @@ class ScMonthCalendar:
     def __init__(self, year, months = [], firstDay = calendar.SUNDAY, weekNr=True, 
                 weekNrHd="Wk", offsetX=0.0, marginX=0.0, offsetY=0.0,  marginY=0.0, 
                 drawImg=True, miniCals=True, cFont='Symbola Regular', lang='English',
-                holidaysList = list(), moonsList = list()):
+                holidaysList = list(), moonsList = list(), promptNewDoc=True):
         """ Setup basic things """
         # params
         self.year = year
@@ -260,6 +260,7 @@ class ScMonthCalendar:
             self.drawMoons = False
         self.cFont = cFont
         self.lang = lang
+        self.promptNewDoc = promptNewDoc # prompt for new document (or use the current one if one exists)
         ix = [[x[0] for x in localization].index(self.lang)]
         if os == "Windows":
             self.calUniCode = (localization[ix[0]][1]) # get unicode page for the selected language
@@ -341,8 +342,10 @@ class ScMonthCalendar:
 
     def createCalendar(self):
         """ Walk through months dict and call monthly sheet """
-        if not newDocDialog():
-            return 'Create a new document first, please'
+        promptNewDoc = self.promptNewDoc or not haveDoc()
+        if promptNewDoc:
+            if not newDocDialog():
+                return 'Create a new document first, please'
         originalUnit = getUnit()
         setUnit(UNIT_POINTS)
         self.setupDocVariables()
