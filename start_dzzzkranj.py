@@ -5,7 +5,7 @@ import calendar
 import locale
 import logging
 from typing import List
-from MonthlyCalendar import CalendarStyle, DateStyle, HolidayStyle, MoonStyle, calcHolidays, calcMoons, ScMonthCalendar
+from MonthlyCalendar import CalendarStyle, ColorScheme, DateStyle, HolidayStyle, MoonStyle, calcHolidays, calcMoons, ScMonthCalendar
 
 logging.basicConfig(filename="U:\\tmp\\scribus-calendar.log", level=logging.DEBUG)
 
@@ -17,6 +17,29 @@ except ImportError as e:
       scripting interface.")
     print("It can only be run from within Scribus.")
     sys.exit(1)
+
+
+# dzzzMonthColors = {}
+# for m, data in dzzzMonthColors100.items():
+#   dzzzMonthColors[m] = {}
+#   for name, cmyk100 in data.items():
+#     dzzzMonthColors[m][name] = (cmyk100[0]*2.55, cmyk100[1]*2.55, cmyk100[2]*2.55, cmyk100[3]*2.55)
+
+
+dzzzMonthColors = {
+    1: {'mainColor': (0, 28, 45, 45), 'lightColor': (0, 28, 45, 45)},
+    2: {'mainColor': (0, 56, 10, 28), 'lightColor': (0, 22, 43, 12)},
+    3: {'mainColor': (10, 0, 119, 109), 'lightColor': (22, 0, 38, 56)},
+    4: {'mainColor': (45, 0, 145, 63), 'lightColor': (15, 0, 5, 30)},
+    5: {'mainColor': (0, 7, 20, 56), 'lightColor': (0, 28, 5, 28)},
+    6: {'mainColor': (114, 10, 0, 112), 'lightColor': (30, 5, 0, 56)},
+    7: {'mainColor': (0, 73, 140, 20), 'lightColor': (0, 73, 140, 20)},
+    8: {'mainColor': (109, 2, 0, 20), 'lightColor': (5, 12, 0, 10)},
+    9: {'mainColor': (0, 79, 142, 89), 'lightColor': (0, 30, 58, 43)},
+    10: {'mainColor': (0, 10, 48, 2), 'lightColor': (0, 10, 48, 2)},
+    11: {'mainColor': (0, 0, 28, 84), 'lightColor': (0, 2, 0, 5)},
+    12: {'mainColor': (0, 193, 188, 33), 'lightColor': (0, 71, 89, 15)}
+}
 
 
 def createCaledar(year: int, months: List[int]) -> None:
@@ -72,11 +95,13 @@ def createCaledar(year: int, months: List[int]) -> None:
         headerDisplayYear=False,
         headerMonthUpperCase=False
     )
+
+    colorScheme = ColorScheme.coloredWeekendsHolidays(dzzzMonthColors)
     
     cal = ScMonthCalendar(
         year=year,
         months=months,
-        firstDay=firstDay, 
+        firstDay=firstDay,
         weekNr=weekNr,
         weekNrHd=weekNrHd,
         offsetX=offsetX, marginX=marginX,
@@ -93,6 +118,8 @@ def createCaledar(year: int, months: List[int]) -> None:
     cal.dateStyle = dzzzDateStyle
     cal.holidayStyle = dzzzHolidayStyle
     cal.moonStyle = dzzzMoonStyle
+    cal.calendarStyle = calendarStyle
+    cal.colorScheme = colorScheme
     err = cal.createCalendar()
     if err != None:
         messageBox("Napaka", err, icon=ICON_CRITICAL)
