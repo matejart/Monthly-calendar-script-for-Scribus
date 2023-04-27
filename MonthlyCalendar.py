@@ -245,6 +245,7 @@ class ColorScheme:
             txtMonthHeading=ColorScheme.BLACK_CMYK,
             fillDayNames=ColorScheme.DARK_GREY_CMYK,
             txtDayNames=ColorScheme.WHITE_CMYK,
+            txtDayNamesWeekend=ColorScheme.WHITE_CMYK,
             fillWeekNo=ColorScheme.DARK_GREY_CMYK,
             txtWeekNo=ColorScheme.WHITE_CMYK,
             fillDate=ColorScheme.WHITE_CMYK,
@@ -535,6 +536,10 @@ class ScMonthCalendar:
         else:
             return (self.pStyleWeek6Date, self.dateWeek6Style)
 
+    def _isWeekend(self, colCnt: int) -> bool:
+        x = 0 if calendar.firstweekday() == 6 else 5
+        return (colCnt == x) or (colCnt == 6)
+
     def _drawDate(self, pStyleDate: object, dateStyle: DateStyle, day: datetime.date,
                   cel: object):
         setText(str(day.day), cel)
@@ -615,9 +620,8 @@ class ScMonthCalendar:
                 cel = createText(self.marginL+self.offsetX + colCnt * self.colSize,
                                  self.marginT+self.offsetY + rowCnt * self.rowSize,
                                  self.colSize, self.rowSize)
+                weekend = self._isWeekend(int(colCnt))
                 colCnt += 1
-                x = 1 if calendar.firstweekday() == 6 else 6
-                weekend = (int(colCnt) == x) or (int(colCnt) == 7)
 
                 setFillColor("fillDate", cel)
                 setCustomLineStyle(self.gridLineStyle, cel)
@@ -795,7 +799,10 @@ class ScMonthCalendar:
             selectObject(cel)
             setParagraphStyle(self.pStyleDayNames, cel)
             setTextVerticalAlignment(ALIGNV_TOP, cel)
-            setTextColor("txtDayNames", cel)
+            if self._isWeekend(int(colCnt)):
+                setTextColor("txtDayNamesWeekend", cel)
+            else:
+                setTextColor("txtDayNames", cel)
             setFillColor("fillDayNames", cel)
             setCustomLineStyle(self.gridLineStyleDayNames, cel)
             colCnt+=1
