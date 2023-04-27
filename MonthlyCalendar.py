@@ -53,7 +53,7 @@ import datetime
 from datetime import date, timedelta
 import csv
 import platform
-from typing import Tuple
+from typing import Dict, Tuple
 
 try:
     from scribus import (
@@ -268,15 +268,70 @@ class ColorScheme:
     @classmethod
     def uniformMonthScheme(cls):
         """ Same as the default, but with per-month colours. """
-        colorScheme = ColorScheme()
-        colorScheme.monthColors = True
         monthCustomNames = [
             "txtDate2", "txtWeekend", "txtWeekend2", "txtHoliday", "txtSpecialDate",
         ]
+
+        colorScheme = ColorScheme()
+        colorScheme.monthColors = True
         for name in monthCustomNames:
             cmyk = colorScheme.colors.pop(name)
             for month in range(1, 13):
                 colorScheme.colors[f"{name}-m{month}"] = cmyk
+
+        return colorScheme
+
+    @classmethod
+    def coloredWeekendsHolidays(cls, monthColors: Dict[int, Dict[str, Tuple[int, int, int, int]]]):
+        """ Holidays and weekends coloured differently each month. """
+        monthCustomNames = [
+            "txtDate2", "txtWeekend", "txtWeekend2", "txtHoliday", "txtSpecialDate",
+            "txtDayNamesWeekend",
+        ]
+
+        colorScheme = ColorScheme()
+        colorScheme.monthColors = True
+        for month in range(1, 13):
+            # main month-specific colour
+            colorScheme.colors[f"txtWeekend-m{month}"] = monthColors[month]["mainColor"]
+            colorScheme.colors[f"txtDayNamesWeekend-m{month}"] = monthColors[month]["mainColor"]
+            colorScheme.colors[f"txtHoliday-m{month}"] = monthColors[month]["mainColor"]
+            # secondary month-specific colour
+            colorScheme.colors[f"txtWeekend2-m{month}"] = monthColors[month]["lightColor"]
+            # default colour
+            colorScheme.colors[f"txtDate2-m{month}"] = colorScheme.colors["txtDate2"]
+            colorScheme.colors[f"txtSpecialDate-m{month}"] = colorScheme.colors["txtSpecialDate"]
+
+        for name in monthCustomNames:
+            colorScheme.colors.pop(name)
+
+        return colorScheme
+
+    @classmethod
+    def coloredWeekendsHolidaysHeader(cls, monthColors: Dict[int, Dict[str, Tuple[int, int, int, int]]]):
+        """ Holidays, weekends and header background are coloured differently each month. """
+        monthCustomNames = [
+            "txtDate2", "txtWeekend", "txtWeekend2", "txtHoliday", "txtSpecialDate",
+            "txtDayNamesWeekend",
+        ]
+
+        colorScheme = ColorScheme()
+        colorScheme.monthColors = True
+        colorScheme.colors["txtMonthHeading"] = ColorScheme.WHITE_CMYK
+        for month in range(1, 13):
+            # main month-specific colour
+            colorScheme.colors[f"txtWeekend-m{month}"] = monthColors[month]["mainColor"]
+            colorScheme.colors[f"txtDayNamesWeekend-m{month}"] = monthColors[month]["mainColor"]
+            colorScheme.colors[f"txtHoliday-m{month}"] = monthColors[month]["mainColor"]
+            colorScheme.colors[f"fillMonthHeading-m{month}"] = monthColors[month]["mainColor"]
+            # secondary month-specific colour
+            colorScheme.colors[f"txtWeekend2-m{month}"] = monthColors[month]["lightColor"]
+            # default colour
+            colorScheme.colors[f"txtDate2-m{month}"] = colorScheme.colors["txtDate2"]
+            colorScheme.colors[f"txtSpecialDate-m{month}"] = colorScheme.colors["txtSpecialDate"]
+
+        for name in monthCustomNames:
+            colorScheme.colors.pop(name)
 
         return colorScheme
 
@@ -607,7 +662,9 @@ class ScMonthCalendar:
             if len(self.weekNrHd) > 2:
                 self.weekNrHd = (self.weekNrHd[:1])
             self.displac = 0.05
-        self.createHeader(calendar.month_name[month+1])
+        self.createHeader(
+            calendar.month_name[month+1], f"fillMonthHeading{mtc}", f"txtDayNamesWeekend{mtc}"
+        )
 
         rowCnt = 2.0
         mtc = f"-m{month + 1}" if self.colorScheme.monthColors else ""
@@ -771,7 +828,7 @@ class ScMonthCalendar:
         else:
             newPage(-1, self.masterPage)
 
-    def createHeader(self, monthName):
+    def createHeader(self, monthName: str, fillMonthHeadingColor: str, txtDayNamesWeekendColor: str):
         """ Draw calendar header: Month name """
         cel = createText(self.marginL + self.offsetX, self.marginT + self.offsetY,
             self.width - self.offsetX, self.rowSize * 1.5)
@@ -816,7 +873,7 @@ class ScMonthCalendar:
             setParagraphStyle(self.pStyleDayNames, cel)
             setTextVerticalAlignment(ALIGNV_TOP, cel)
             if self._isWeekend(int(colCnt)):
-                setTextColor("txtDayNamesWeekend", cel)
+                setTextColor(txtDayNamesWeekendColor, cel)
             else:
                 setTextColor("txtDayNames", cel)
             setFillColor("fillDayNames", cel)
