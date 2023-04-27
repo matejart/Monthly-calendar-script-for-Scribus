@@ -229,6 +229,42 @@ class CalendarStyle:
         self.headerMonthUpperCase = headerMonthUpperCase
 
 ######################################################
+class ColorScheme:
+    """ Represents the colour scheme of the calendar. Colours are in CMYK. """
+    WHITE_CMYK = (0, 0, 0, 0)
+    BLACK_CMYK = (0, 0, 0, 255)
+    DARK_GREY_CMYK = (0, 0, 0, 200)
+    MIDDLE_GREY_CMYK = (0, 0, 0, 128)
+    LIGHT_GREY_CMYK = (0, 0, 0, 21)
+    RED_CMYK = (0, 234, 246, 0)
+
+    def __init__(self):
+        """ Generate the default color scheme. """
+        self.colors = dict(
+            fillMonthHeading=ColorScheme.WHITE_CMYK,
+            txtMonthHeading=ColorScheme.BLACK_CMYK,
+            fillDayNames=ColorScheme.DARK_GREY_CMYK,
+            txtDayNames=ColorScheme.WHITE_CMYK,
+            fillWeekNo=ColorScheme.DARK_GREY_CMYK,
+            txtWeekNo=ColorScheme.WHITE_CMYK,
+            fillDate=ColorScheme.WHITE_CMYK,
+            txtDate=ColorScheme.BLACK_CMYK,
+            txtDate2=ColorScheme.MIDDLE_GREY_CMYK,
+            fillWeekend=ColorScheme.LIGHT_GREY_CMYK,
+            fillWeekend2=ColorScheme.LIGHT_GREY_CMYK,
+            txtWeekend=ColorScheme.DARK_GREY_CMYK,
+            txtWeekend2=(0, 0, 0, 96),
+            fillHoliday=ColorScheme.LIGHT_GREY_CMYK,
+            txtHoliday=ColorScheme.RED_CMYK,
+            fillSpecialDate=ColorScheme.WHITE_CMYK,
+            txtSpecialDate=ColorScheme.MIDDLE_GREY_CMYK,
+            gridColor=ColorScheme.MIDDLE_GREY_CMYK,
+            gridMonthHeading=ColorScheme.WHITE_CMYK,
+            gridDayNames=ColorScheme.MIDDLE_GREY_CMYK,
+            gridWeekNo=ColorScheme.MIDDLE_GREY_CMYK,
+        )
+
+######################################################
 class ScMonthCalendar:
     """ Calendar matrix creator itself. One month per page."""
 
@@ -332,6 +368,7 @@ class ScMonthCalendar:
         self.dateWeek6Style = DateStyle(textAlignment=ALIGN_RIGHT, textVerticalAlignment=ALIGNV_BOTTOM)
         self.holidayStyle = HolidayStyle()
         self.moonStyle = MoonStyle(cFont=self.cFont)
+        self.colorScheme = ColorScheme()
 
         # other settings
         self.showProgress = True # set to False if Scribus stack-overflows
@@ -339,6 +376,12 @@ class ScMonthCalendar:
         calendar.setfirstweekday(firstDay)
         if self.showProgress:
             progressTotal(len(months))
+
+    def _defineCalendarColors(self, colorScheme: ColorScheme) -> None:
+        defineColorCMYK("Black", 0, 0, 0, 255)
+        defineColorCMYK("White", 0, 0, 0, 0)
+        for name, cmyk in self.colorScheme.colors.items():
+            defineColorCMYK(name, *cmyk)
 
     def createCalendar(self):
         """ Walk through months dict and call monthly sheet """
@@ -399,29 +442,7 @@ class ScMonthCalendar:
         """ Compute base metrics here. Page layout is bordered by margins
             and empty image frame(s). """
         # default calendar colors
-        defineColorCMYK("Black", 0, 0, 0, 255)
-        defineColorCMYK("White", 0, 0, 0, 0)
-        defineColorCMYK("fillMonthHeading", 0, 0, 0, 0) # default is White
-        defineColorCMYK("txtMonthHeading", 0, 0, 0, 255) # default is Black
-        defineColorCMYK("fillDayNames", 0, 0, 0, 200) # default is Dark Grey
-        defineColorCMYK("txtDayNames", 0, 0, 0, 0) # default is White
-        defineColorCMYK("fillWeekNo", 0, 0, 0, 200) # default is Dark Grey
-        defineColorCMYK("txtWeekNo", 0, 0, 0, 0) # default is White
-        defineColorCMYK("fillDate", 0, 0, 0, 0) # default is White
-        defineColorCMYK("txtDate", 0, 0, 0, 255) # default is Black
-        defineColorCMYK("txtDate2", 0, 0, 0, 128) # default is Middle Grey
-        defineColorCMYK("fillWeekend", 0, 0, 0, 25) # default is Light Grey
-        defineColorCMYK("fillWeekend2", 0, 0, 0, 25) # default is Light Grey
-        defineColorCMYK("txtWeekend", 0, 0, 0, 200) # default is Dark Grey
-        defineColorCMYK("txtWeekend2", 0, 0, 0, 96)
-        defineColorCMYK("fillHoliday", 0, 0, 0, 25) # default is Light Grey
-        defineColorCMYK("txtHoliday", 0, 234, 246, 0) # default is Red
-        defineColorCMYK("fillSpecialDate", 0, 0, 0, 0) # default is White
-        defineColorCMYK("txtSpecialDate", 0, 0, 0, 128) # default is Middle Grey
-        defineColorCMYK("gridColor", 0, 0, 0, 128) # default is Middle Grey
-        defineColorCMYK("gridMonthHeading", 0, 0, 0, 0) # default is White
-        defineColorCMYK("gridDayNames", 0, 0, 0, 128) # default is Middle Grey
-        defineColorCMYK("gridWeekNo", 0, 0, 0, 128) # default is Middle Grey
+        self._defineCalendarColors(self.colorScheme)
         # document measures
         page = getPageSize()
         self.pageX = page[0]
