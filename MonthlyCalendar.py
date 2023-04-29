@@ -45,6 +45,7 @@ and Bernhard Reiter which is provided with Scribus.
 ######################################################
 # imports
 from __future__ import division # overrules Python 2 integer division
+from enum import Enum
 import sys
 import locale
 import logging
@@ -211,13 +212,18 @@ class MoonStyle:
         self.textVerticalAlignment = textVerticalAlignment
 
 ######################################################
+class HeaderPlacementEnum(Enum):
+    TOP = 0
+    LEFT = 1
+
+######################################################
 class CalendarStyle:
     """ Represents style of the whole calendar. """
-
     def __init__(self, fullRowCount: bool = True,
                  fillAllDays: bool = False,
                  headerDisplayYear: bool = True,
-                 headerMonthUpperCase: bool = True):
+                 headerMonthUpperCase: bool = True,
+                 headerPlacement: HeaderPlacementEnum = HeaderPlacementEnum.TOP):
         # Full row count always makes 6-row calendars. Set to False to get 5-row calendars.
         self.fullRowCount = fullRowCount
         # Show date numbers for any previous and next month's days (first and last week)
@@ -226,6 +232,8 @@ class CalendarStyle:
         self.headerDisplayYear = headerDisplayYear
         # Use all upper case for month?
         self.headerMonthUpperCase = headerMonthUpperCase
+        # Placement of the header
+        self.headerPlacement = headerPlacement
 
 ######################################################
 class ColorScheme:
@@ -458,6 +466,9 @@ class ScMonthCalendar:
 
     def createCalendar(self):
         """ Walk through months dict and call monthly sheet """
+        if self.miniCals and self.calendarStyle.headerPlacement != HeaderPlacementEnum.TOP:
+            return "Mini calendars are only supported for top header placement"
+
         promptNewDoc = self.promptNewDoc or not haveDoc()
         if promptNewDoc:
             if not newDocDialog():
@@ -528,15 +539,22 @@ class ScMonthCalendar:
         self.width = self.pageX - self.marginL - self.marginR
         self.height = self.pageY - self.marginT - self.marginB
         # cell rows and cols
-        self.rows = 8.0 # month heading 1.5 + weekday names 0.5 +  6 weeks
+        if self.calendarStyle.headerPlacement == HeaderPlacementEnum.TOP:
+            self.rows = 8.0 # month heading 1.5 + weekday names 0.5 +  6 weeks
+            if self.weekNr:
+                self.cols = 7.5 # weekNr column is 0.5 of weekday column
+            else:
+                self.cols = 7.0 # 7 weekdays
+        else: # self.calendarStyle.headerPlacement == HeaderPlacementEnum.LEFT:
+            self.rows = 6.5 # weekday names 0.5 +  6 weeks
+            if self.weekNr:
+                self.cols = 9.0 # month heading 1.5 + weekNr column is 0.5 of weekday column
+            else:
+                self.cols = 8.5 # month heading 1.5 + 7 weekdays
         if not self.calendarStyle.fullRowCount:
             # reduced row count calendar reuses its week 5 row for week 6 days
             self.rows -= 1
         self.rowSize = (self.height - self.offsetY) / self.rows
-        if self.weekNr:
-            self.cols = 7.5 # weekNr column is 0.5 of weekday column
-        else:
-            self.cols = 7.0 # 7 weekdays
         self.colSize = (self.width - self.offsetX) / self.cols
         if (self.colSize / self.rowSize) < 1.33: # chosen by experience
             self.smallCel = True                       # to avoid text overflows
@@ -669,7 +687,13 @@ class ScMonthCalendar:
             calendar.month_name[month+1], f"fillMonthHeading{mtc}", f"txtDayNamesWeekend{mtc}"
         )
 
-        rowCnt = 2.0
+        if self.calendarStyle.headerPlacement == HeaderPlacementEnum.TOP:
+            rowCnt0 = 2.0
+            colCnt0 = 0
+        else: # self.calendarStyle.headerPlacement == HeaderPlacementEnum.LEFT:
+            rowCnt0 = 0.5
+            colCnt0 = 1.5
+        rowCnt = rowCnt0
         for wnum, week in enumerate(cal):
             logging.debug(f"Week: {week}")
             if self.weekNr:
@@ -684,9 +708,9 @@ class ScMonthCalendar:
                 selectObject(cel)
                 setParagraphStyle(self.pStyleWeekNo, cel)
                 setTextVerticalAlignment(ALIGNV_CENTERED,cel)
-                colCnt = 0.5
+                colCnt = colCnt0 + 0.5
             else:
-                colCnt = 0
+                colCnt = colCnt0
             for cnum, day in enumerate(week):
                 if not self.calendarStyle.fullRowCount and day.month not in [month, month+1] and wnum > 4:
                     # we're in the next month of the already populated reduced row calendar
@@ -695,7 +719,7 @@ class ScMonthCalendar:
                 cel = createText(self.marginL+self.offsetX + colCnt * self.colSize,
                                  self.marginT+self.offsetY + rowCnt * self.rowSize,
                                  self.colSize, self.rowSize)
-                weekend = self._isWeekend(int(colCnt))
+                weekend = self._isWeekend(int(colCnt - colCnt0))
                 colCnt += 1
 
                 setFillColor("fillDate", cel)
@@ -789,11 +813,11 @@ class ScMonthCalendar:
                 rowCnt += 1
 
         if self.calendarStyle.fullRowCount:
-            while rowCnt < 8:
-                self.createEmptyWeekRow(rowCnt)
+            while rowCnt < self.rows:
+                self.createEmptyWeekRow(rowCnt, colCnt0)
                 rowCnt += 1
 
-    def createEmptyWeekRow(self, rowCnt):
+    def createEmptyWeekRow(self, rowCnt, colCnt0):
         """ Add empty week row(s) at bottom of month """
         if self.weekNr:
             cel = createText(self.marginL + self.offsetX,
@@ -801,9 +825,9 @@ class ScMonthCalendar:
                              self.colSize*0.5, self.rowSize)
             setFillColor("fillWeekNo", cel)
             setCustomLineStyle(self.gridLineStyleWeekNo, cel)
-            colCnt = 0.5
+            colCnt = colCnt0 + 0.5
         else:
-            colCnt = 0
+            colCnt = colCnt0
         for y in range(0, 7):
             cel = createText(self.marginL+self.offsetX + colCnt * self.colSize,
                              self.marginT+self.offsetY + rowCnt * self.rowSize,
@@ -832,8 +856,18 @@ class ScMonthCalendar:
 
     def createHeader(self, monthName: str, fillMonthHeadingColor: str, txtDayNamesWeekendColor: str):
         """ Draw calendar header: Month name """
-        cel = createText(self.marginL + self.offsetX, self.marginT + self.offsetY,
-            self.width - self.offsetX, self.rowSize * 1.5)
+        if self.calendarStyle.headerPlacement == HeaderPlacementEnum.TOP:
+            cel = createText(self.marginL + self.offsetX, self.marginT + self.offsetY,
+                self.width - self.offsetX, self.rowSize * 1.5)
+            rowCnt = 1.5
+            colCnt0 = 0
+        else: # self.calendarStyle.headerPlacement == HeaderPlacementEnum.LEFT:
+            # rotation happens around the top-left vertex of the box -> place it at the bottom
+            cel = createText(self.marginL + self.offsetX, self.marginT + self.offsetY,
+                self.colSize * 1.5, self.height - self.offsetY)
+            rowCnt = 0
+            colCnt0 = 1.5
+        colCnt = colCnt0
         mtHd = monthName
         headerStrs = [mtHd.upper() if self.calendarStyle.headerMonthUpperCase else mtHd]
         if self.calendarStyle.headerDisplayYear:
@@ -848,8 +882,6 @@ class ScMonthCalendar:
         selectObject(cel)
         moveSelectionToBack()
         """ Draw calendar header: Weekday names. """
-        rowCnt = 1.5
-        colCnt = 0
         if self.weekNr:
             cel = createText(self.marginL + self.offsetX,
                 self.marginT + self.offsetY + self.rowSize * rowCnt, self.colSize * 0.5,
@@ -865,7 +897,7 @@ class ScMonthCalendar:
             setTextColor("txtWeekNo", cel)
             setFillColor("fillWeekNo", cel)
             setCustomLineStyle(self.gridLineStyleWeekNo, cel)
-            colCnt = 0.5
+            colCnt += 0.5
         for j in self.dayOrder: # day names
             cel = createText(self.marginL + self.offsetX + colCnt * self.colSize,
                 self.marginT + self.offsetY + self.rowSize * rowCnt, self.colSize, self.rowSize * 0.5)
@@ -874,7 +906,7 @@ class ScMonthCalendar:
             selectObject(cel)
             setParagraphStyle(self.pStyleDayNames, cel)
             setTextVerticalAlignment(ALIGNV_TOP, cel)
-            if self._isWeekend(int(colCnt)):
+            if self._isWeekend(int(colCnt - colCnt0)):
                 setTextColor(txtDayNamesWeekendColor, cel)
             else:
                 setTextColor("txtDayNames", cel)
