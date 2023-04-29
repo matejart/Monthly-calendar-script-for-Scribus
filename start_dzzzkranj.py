@@ -5,7 +5,7 @@ import calendar
 import locale
 import logging
 from typing import List
-from MonthlyCalendar import CalendarStyle, ColorScheme, DateStyle, HolidayStyle, MoonStyle, calcHolidays, calcMoons, ScMonthCalendar
+from MonthlyCalendar import CalendarStyle, ColorScheme, DateStyle, HeaderPlacementEnum, HolidayStyle, MoonStyle, calcHolidays, calcMoons, ScMonthCalendar
 
 logging.basicConfig(filename="U:\\tmp\\scribus-calendar.log", level=logging.DEBUG)
 
@@ -93,7 +93,8 @@ def createCaledar(year: int, months: List[int]) -> None:
         fullRowCount=False,
         fillAllDays=True,
         headerDisplayYear=False,
-        headerMonthUpperCase=False
+        headerMonthUpperCase=False,
+        headerPlacement=HeaderPlacementEnum.LEFT
     )
 
     colorScheme = ColorScheme.coloredWeekendsHolidaysHeader(dzzzMonthColors)
