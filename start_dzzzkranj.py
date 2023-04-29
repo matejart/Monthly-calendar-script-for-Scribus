@@ -96,7 +96,9 @@ def createCaledar(year: int, months: List[int]) -> None:
         headerMonthUpperCase=False
     )
 
-    colorScheme = ColorScheme.coloredWeekendsHolidays(dzzzMonthColors)
+    colorScheme = ColorScheme.coloredWeekendsHolidaysHeader(dzzzMonthColors)
+    colorScheme.colors["fillDayNames"] = ColorScheme.WHITE_CMYK
+    colorScheme.colors["txtDayNames"] = colorScheme.colors["txtDate"]
     
     cal = ScMonthCalendar(
         year=year,
