@@ -90,6 +90,7 @@ try:
         progressSet,
         progressTotal,
         redrawAll,
+        rotateObject,
         selectObject,
         selectText,
         setActiveLayer,
@@ -863,8 +864,9 @@ class ScMonthCalendar:
             colCnt0 = 0
         else: # self.calendarStyle.headerPlacement == HeaderPlacementEnum.LEFT:
             # rotation happens around the top-left vertex of the box -> place it at the bottom
-            cel = createText(self.marginL + self.offsetX, self.marginT + self.offsetY,
-                self.colSize * 1.5, self.height - self.offsetY)
+            cel = createText(self.marginL + self.offsetX, self.marginT + self.height,
+                self.height - self.offsetY, self.colSize * 1.5)
+            rotateObject(90.0, cel)
             rowCnt = 0
             colCnt0 = 1.5
         colCnt = colCnt0
