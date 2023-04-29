@@ -270,6 +270,7 @@ class ColorScheme:
         """ Same as the default, but with per-month colours. """
         monthCustomNames = [
             "txtDate2", "txtWeekend", "txtWeekend2", "txtHoliday", "txtSpecialDate",
+            "fillMonthHeading",
         ]
 
         colorScheme = ColorScheme()
@@ -286,7 +287,7 @@ class ColorScheme:
         """ Holidays and weekends coloured differently each month. """
         monthCustomNames = [
             "txtDate2", "txtWeekend", "txtWeekend2", "txtHoliday", "txtSpecialDate",
-            "txtDayNamesWeekend",
+            "txtDayNamesWeekend", "fillMonthHeading",
         ]
 
         colorScheme = ColorScheme()
@@ -301,6 +302,7 @@ class ColorScheme:
             # default colour
             colorScheme.colors[f"txtDate2-m{month}"] = colorScheme.colors["txtDate2"]
             colorScheme.colors[f"txtSpecialDate-m{month}"] = colorScheme.colors["txtSpecialDate"]
+            colorScheme.colors[f"fillMonthHeading-m{month}"] = colorScheme.colors["fillMonthHeading"]
 
         for name in monthCustomNames:
             colorScheme.colors.pop(name)
@@ -312,7 +314,7 @@ class ColorScheme:
         """ Holidays, weekends and header background are coloured differently each month. """
         monthCustomNames = [
             "txtDate2", "txtWeekend", "txtWeekend2", "txtHoliday", "txtSpecialDate",
-            "txtDayNamesWeekend",
+            "txtDayNamesWeekend", "fillMonthHeading",
         ]
 
         colorScheme = ColorScheme()
@@ -626,6 +628,7 @@ class ScMonthCalendar:
     def createMonthCalendar(self, month, cal):
         """ Create a page and draw one month calendar on it """
         logging.debug(f"Creating month calendar for month {month}")
+        mtc = f"-m{month + 1}" if self.colorScheme.monthColors else ""
         self.createLayout()
         if self.drawImg:
             self.createImg()
@@ -667,7 +670,6 @@ class ScMonthCalendar:
         )
 
         rowCnt = 2.0
-        mtc = f"-m{month + 1}" if self.colorScheme.monthColors else ""
         for wnum, week in enumerate(cal):
             logging.debug(f"Week: {week}")
             if self.weekNr:
@@ -841,7 +843,7 @@ class ScMonthCalendar:
         selectObject(cel)
         setParagraphStyle(self.pStyleMonthHeading, cel)
         setTextVerticalAlignment(ALIGNV_CENTERED, cel)
-        setFillColor("fillMonthHeading", cel)
+        setFillColor(fillMonthHeadingColor, cel)
         setCustomLineStyle(self.gridLineStyleMonthHeading, cel)
         selectObject(cel)
         moveSelectionToBack()
