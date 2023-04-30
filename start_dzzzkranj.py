@@ -94,7 +94,7 @@ def createCaledar(year: int, months: List[int]) -> None:
         fillAllDays=True,
         headerDisplayYear=False,
         headerMonthUpperCase=False,
-        headerPlacement=HeaderPlacementEnum.LEFT
+        headerPlacement=HeaderPlacementEnum.LEFT_CALENDAR_ALIGNED
     )
 
     colorScheme = ColorScheme.coloredWeekendsHolidaysHeader(dzzzMonthColors)
