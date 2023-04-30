@@ -1461,10 +1461,23 @@ an integer between -12 and +12.')
         # create calendar (finally)
         msg=messagebox.showinfo("INFO:", '  language=' + self.lang 
             + '\n  font=' + self.font+'\n')
-        cal = ScMonthCalendar(year, months, self.weekVar.get(), weekNr, self.weekNrHdVar.get(),
-                float(self.offsetXVar.get()), float(self.marginXVar.get()), float(self.offsetYVar.get()), 
-                float(self.marginYVar.get()), drawImg, miniCals, self.font, self.lang, holidaysList,
-                moonsList)
+        cal = ScMonthCalendar(
+            year=year,
+            months=months,
+            firstDay=self.weekVar.get(),
+            weekNr=weekNr,
+            weekNrHd=self.weekNrHdVar.get(),
+            offsetX=float(self.offsetXVar.get()),
+            marginX=float(self.marginXVar.get()),
+            offsetY=float(self.offsetYVar.get()),
+            marginY=float(self.marginYVar.get()),
+            drawImg=drawImg,
+            miniCals=miniCals,
+            cFont=self.font,
+            lang=self.lang,
+            holidaysList=holidaysList,
+            moonsList=moonsList
+        )
         self.master.withdraw()
         err = cal.createCalendar()
         if err != None:
