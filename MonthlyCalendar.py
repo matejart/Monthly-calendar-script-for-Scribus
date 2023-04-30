@@ -870,6 +870,7 @@ class ScMonthCalendar:
         if self.calendarStyle.headerPlacement == HeaderPlacementEnum.TOP:
             cel = createText(self.marginL + self.offsetX, self.marginT + self.offsetY,
                 self.width - self.offsetX, self.rowSize * 1.5)
+            verticalAlignment = ALIGNV_CENTERED
             rowCnt = 1.5
             colCnt0 = 0
         else: # self.calendarStyle.headerPlacement == HeaderPlacementEnum.LEFT*:
@@ -882,6 +883,7 @@ class ScMonthCalendar:
             cel = createText(self.marginL + self.offsetX, self.marginT + self.height,
                 hHeight, hWidth)
             rotateObject(90.0, cel)
+            verticalAlignment = ALIGNV_TOP
             rowCnt = 0
             colCnt0 = 0.85
         colCnt = colCnt0
@@ -893,7 +895,7 @@ class ScMonthCalendar:
         deselectAll()
         selectObject(cel)
         setParagraphStyle(self.pStyleMonthHeading, cel)
-        setTextVerticalAlignment(ALIGNV_CENTERED, cel)
+        setTextVerticalAlignment(verticalAlignment, cel)
         setFillColor(fillMonthHeadingColor, cel)
         setCustomLineStyle(self.gridLineStyleMonthHeading, cel)
         selectObject(cel)
