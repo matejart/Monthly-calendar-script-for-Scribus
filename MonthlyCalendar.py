@@ -216,6 +216,7 @@ class MoonStyle:
 class HeaderPlacementEnum(Enum):
     TOP = 0
     LEFT = 1
+    LEFT_CALENDAR_ALIGNED = 2
 
 ######################################################
 class CalendarStyle:
@@ -862,10 +863,15 @@ class ScMonthCalendar:
                 self.width - self.offsetX, self.rowSize * 1.5)
             rowCnt = 1.5
             colCnt0 = 0
-        else: # self.calendarStyle.headerPlacement == HeaderPlacementEnum.LEFT:
-            # rotation happens around the top-left vertex of the box -> place it at the bottom
+        else: # self.calendarStyle.headerPlacement == HeaderPlacementEnum.LEFT*:
+            # rotation happens around the top-left vertex of the box -> place it at the bottom and
+            # swap width and height
+            hWidth = self.colSize * 1.5
+            hHeight = self.height - self.offsetY
+            if self.calendarStyle.headerPlacement == HeaderPlacementEnum.LEFT_CALENDAR_ALIGNED:
+                hHeight -= self.rowSize * 0.5
             cel = createText(self.marginL + self.offsetX, self.marginT + self.height,
-                self.height - self.offsetY, self.colSize * 1.5)
+                hHeight, hWidth)
             rotateObject(90.0, cel)
             rowCnt = 0
             colCnt0 = 1.5
