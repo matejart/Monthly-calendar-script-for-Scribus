@@ -551,9 +551,9 @@ class ScMonthCalendar:
         else: # self.calendarStyle.headerPlacement == HeaderPlacementEnum.LEFT:
             self.rows = 6.5 # weekday names 0.5 +  6 weeks
             if self.weekNr:
-                self.cols = 9.0 # month heading 1.5 + weekNr column is 0.5 of weekday column
+                self.cols = 8.35 # month heading 0.85 + weekNr column is 0.5 of weekday column
             else:
-                self.cols = 8.5 # month heading 1.5 + 7 weekdays
+                self.cols = 7.85 # month heading 0.85 + 7 weekdays
         if not self.calendarStyle.fullRowCount:
             # reduced row count calendar reuses its week 5 row for week 6 days
             self.rows -= 1
@@ -695,7 +695,7 @@ class ScMonthCalendar:
             colCnt0 = 0
         else: # self.calendarStyle.headerPlacement == HeaderPlacementEnum.LEFT:
             rowCnt0 = 0.5
-            colCnt0 = 1.5
+            colCnt0 = 0.85
         rowCnt = rowCnt0
         for wnum, week in enumerate(cal):
             logging.debug(f"Week: {week}")
@@ -867,7 +867,7 @@ class ScMonthCalendar:
         else: # self.calendarStyle.headerPlacement == HeaderPlacementEnum.LEFT*:
             # rotation happens around the top-left vertex of the box -> place it at the bottom and
             # swap width and height
-            hWidth = self.colSize * 1.5
+            hWidth = self.colSize * 0.85
             hHeight = self.height - self.offsetY
             if self.calendarStyle.headerPlacement == HeaderPlacementEnum.LEFT_CALENDAR_ALIGNED:
                 hHeight -= self.rowSize * 0.5
@@ -875,7 +875,7 @@ class ScMonthCalendar:
                 hHeight, hWidth)
             rotateObject(90.0, cel)
             rowCnt = 0
-            colCnt0 = 1.5
+            colCnt0 = 0.85
         colCnt = colCnt0
         mtHd = monthName
         headerStrs = [mtHd.upper() if self.calendarStyle.headerMonthUpperCase else mtHd]
