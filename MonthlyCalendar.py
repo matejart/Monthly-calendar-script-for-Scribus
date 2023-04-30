@@ -352,7 +352,7 @@ class ScMonthCalendar:
     """ Calendar matrix creator itself. One month per page."""
 
     def __init__(self, year, months = [], firstDay = calendar.SUNDAY, weekNr=True, 
-                weekNrHd="Wk", offsetX=0.0, marginX=0.0, offsetY=0.0,  marginY=0.0, 
+                weekNrHd="Wk", offsetX=0.0, marginX=0.0, offsetY=0.0,  marginY=0.0, height=None,
                 drawImg=True, miniCals=True, cFont='Symbola Regular', lang='English',
                 holidaysList = list(), moonsList = list(), promptNewDoc=True):
         """ Setup basic things """
@@ -365,6 +365,7 @@ class ScMonthCalendar:
         self.offsetY = offsetY
         self.marginX = marginX
         self.marginY = marginY
+        self.fixHeight = height # optional override to fix the height instead of compute it against pg. margins
         self.drawImg = drawImg # draw placeholder for image or logo (between margins and offsetX / offsetY)
         self.miniCals = miniCals # draw mini calendars for previous and next months in the calendar heading
         self.holidaysList = holidaysList #imported and converted from '*holidays.txt' (or empty list)
@@ -539,7 +540,7 @@ class ScMonthCalendar:
         self.marginR = marg[2]
         self.marginB = marg[3]
         self.width = self.pageX - self.marginL - self.marginR
-        self.height = self.pageY - self.marginT - self.marginB
+        self.height = self.pageY - self.marginT - self.marginB if self.fixHeight is None else self.fixHeight
         # cell rows and cols
         if self.calendarStyle.headerPlacement == HeaderPlacementEnum.TOP:
             self.rows = 8.0 # month heading 1.5 + weekday names 0.5 +  6 weeks
