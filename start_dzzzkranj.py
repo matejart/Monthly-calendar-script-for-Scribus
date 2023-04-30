@@ -46,10 +46,11 @@ def createCaledar(year: int, months: List[int]) -> None:
     firstDay = calendar.MONDAY
     weekNr = False
     weekNrHd="T"
-    offsetX=123.59
-    marginX=0.0
-    offsetY=0.0
-    marginY=90.71
+    offsetX = 0.0
+    marginX = 0.0
+    offsetY = 0.0
+    marginY = 0.0
+    height = 396.0
     drawImg=False
     miniCals=False
     cFont="Futura PT Light"
