@@ -204,10 +204,15 @@ class HolidayStyle:
 class MoonStyle:
     """ Encapsulates cusomizable styles for a moon phase glyph. """
 
-    def __init__(self, cFont: str, textAlignment: str = ALIGN_CENTERED,
+    def __init__(self, cFont: str,
+                 fontscale: float = 0.33,
+                 marginScale: float = 0.05,
+                 textAlignment: str = ALIGN_CENTERED,
                  textVerticalAlignmentSmallCell: str = ALIGNV_TOP,
                  textVerticalAlignment: str = ALIGNV_CENTERED):
         self.cFont = cFont
+        self.fontscale = fontscale
+        self.marginScale = marginScale
         self.textAlignment = textAlignment
         self.textVerticalAlignmentSmallCell = textVerticalAlignmentSmallCell
         self.textVerticalAlignment = textVerticalAlignment
@@ -790,14 +795,17 @@ class ScMonthCalendar:
                                 deselectAll()
                                 selectObject(cel)
                                 setParagraphStyle(self.pStyleMoons, cel)
-                                setTextDistances(self.colSize * 0.05, 0,  self.rowSize * 0.05, 
-                                    self.rowSize * 0.05, cel)
+                                setTextDistances(self.colSize * self.moonStyle.marginScale,
+                                                 0,
+                                                 self.rowSize * self.moonStyle.marginScale,
+                                                 self.rowSize * self.moonStyle.marginScale,
+                                                 cel)
                                 setTextAlignment(self.moonStyle.textAlignment, cel)
                                 if self.smallCel:
                                     setTextVerticalAlignment(self.moonStyle.textVerticalAlignmentSmallCell, cel)
                                 else:
                                     setTextVerticalAlignment(self.moonStyle.textVerticalAlignment, cel)
-                                    setFontSize(self.rowSize // 3, cel)
+                                    setFontSize(self.rowSize * self.moonStyle.fontscale, cel)
                                 if weekend:
                                     setTextColor(f"txtWeekend{mtc}", cel)
                                 if holidayColor:
