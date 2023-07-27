@@ -133,7 +133,7 @@ def createCaledar(year: int, months: List[int]) -> None:
 
 
 def main():
-    createCaledar(2023, [4, 6, 7])
+    createCaledar(2024, range(12))
 
 if __name__ == '__main__':
     main()
