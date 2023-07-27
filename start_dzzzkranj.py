@@ -118,8 +118,7 @@ def createCaledar(year: int, months: List[int]) -> None:
         cFont=cFont,
         lang=lang,
         holidaysList=holidaysList,
-        moonsList=moonsList,
-        promptNewDoc=False
+        moonsList=moonsList
     )
     cal.showProgress = False
     cal.dateStyle = dzzzDateStyle
