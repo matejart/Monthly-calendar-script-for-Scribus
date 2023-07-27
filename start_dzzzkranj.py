@@ -113,6 +113,7 @@ def createCaledar(year: int, months: List[int]) -> None:
         weekNrHd=weekNrHd,
         offsetX=offsetX, marginX=marginX,
         offsetY=offsetY, marginY=marginY,
+        height=height,
         drawImg=drawImg,
         miniCals=miniCals,
         cFont=cFont,
