@@ -87,6 +87,7 @@ def createCaledar(year: int, months: List[int]) -> None:
     dzzzMoonStyle = MoonStyle(
         cFont="Cambria Math Regular",
         fontscale=0.17,
+        fullMoonFontScale=0.28,
         marginScale=0.085,
         textAlignment=ALIGN_CENTERED,
         textVerticalAlignmentSmallCell=ALIGNV_BOTTOM,
