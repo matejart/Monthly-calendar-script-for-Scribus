@@ -3,11 +3,14 @@ import re
 
 try:
     from scribus import (
+        changeColorCMYK,
         defineColorCMYK,
+        getColor,
         getColorAsRGB,
         haveDoc,
         ICON_CRITICAL,
         messageBox,
+        NotFoundError,
         redrawAll,
     )
 except ImportError:
@@ -27,6 +30,44 @@ except ImportError:
     sys.exit(1)
 
 
+class ColorCategory:
+    """ Structure to represent a colour category (a row in the GUI picker) """
+    name: str
+    cmyk: tuple = (0, 0, 0, 0)
+    color_names: list
+
+    def __init__(self, name: str, cmyk: tuple, color_names: list):
+        self.name = name
+        self.cmyk = cmyk
+        self.color_names = color_names
+
+    @classmethod
+    def CreateSimpleColorCategories(cls) -> list:
+        return [
+            ColorCategory(
+                name="Main colour",
+                cmyk=(0, 0, 0, 0),
+                color_names=[
+                    "txtWeekend-m{}", "txtDayNamesWeekend-m{}", "txtHoliday-m{}",
+                ]
+            ),
+            ColorCategory(
+                name="Light colour",
+                cmyk=(0, 0, 0, 0),
+                color_names=[ "txtWeekend2-m{}", ]
+            ),
+            ColorCategory(
+                name="Date text",
+                cmyk=(0, 0, 0, 0),
+                color_names=[ "txtDate2-m{}", ]
+            ),
+            ColorCategory(
+                name="Special date text",
+                cmyk=(0, 0, 0, 0),
+                color_names=[ "txtSpecialDate-m{}", ]
+            ),
+        ]
+
 class TkColorSchemeEditor(Frame):
     """ Implementation of the dialog for editing the months' colour scheme """
     TEMPORARY_COLOR = "calColorSchemeTemporary"
@@ -34,6 +75,16 @@ class TkColorSchemeEditor(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
 
+        self.color_categories = ColorCategory.CreateSimpleColorCategories()
+        self.months = ["January", "February", "March", "April", "May", "June",
+                       "July", "August", "September", "October", "November",
+                       "December"]
+        self.current_month = 1
+        self._init_gui()
+
+        self._load_colors(1)
+
+    def _init_gui(self):
         self.master.title("Calendar colour picker")
 
         self.message = tk.Label(self.master, text="Message ...")
@@ -46,15 +97,18 @@ class TkColorSchemeEditor(Frame):
         month_label.grid(row=0, column=0)
         month_dropdown = tk.StringVar()
         month_dropdown.set("January")  # Set an initial value
-        month_menu = tk.OptionMenu(month_frame, month_dropdown, "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
+        month_menu = tk.OptionMenu(
+            month_frame,
+            month_dropdown,
+            *self.months,
+            command=self._on_select_month)
         month_menu.grid(row=0, column=1)
 
-        self.vars: list[tk.StringVar] = []
-        self.rects: list[tk.Label] = []
+        self.vars: list = []
+        self.rects: list = []
         # Colour grid
-        labels = ["Main colour", "Light colour", "Date text", "Special date text"]
-        for i, label_text in enumerate(labels):
-            row_label = tk.Label(self.master, text=label_text)
+        for i, color_category in enumerate(self.color_categories):
+            row_label = tk.Label(self.master, text=color_category.name)
             row_label.grid(row=i+1, column=0)
 
             # Colored rectangle
@@ -93,14 +147,15 @@ class TkColorSchemeEditor(Frame):
             black_entry.grid(row=i+1, column=9)
 
         # Buttons
+        button_row = len(self.color_categories) + 1
         apply_button = tk.Button(self.master, text="Apply", command=self.apply_color)
         reset_button = tk.Button(self.master, text="Reset", command=self.reset_color)
         close_button = tk.Button(self.master, text="Close", command=self.close_dialog)
-        apply_button.grid(row=len(labels)+1, column=0, columnspan=2)
-        reset_button.grid(row=len(labels)+1, column=2, columnspan=2)
-        close_button.grid(row=len(labels)+1, column=4, columnspan=2)
+        apply_button.grid(row=button_row, column=0, columnspan=2)
+        reset_button.grid(row=button_row, column=2, columnspan=2)
+        close_button.grid(row=button_row, column=4, columnspan=2)
 
-        self.message.grid(row=len(labels)+1, column=6, columnspan=4)
+        self.message.grid(row=button_row, column=6, columnspan=4)
 
     def _validate_percent(self, widget: str, newval: str, op: str):
         valid = re.match("^[0-9]$|^[1-9][0-9]$|^(100)$", newval) is not None
@@ -132,22 +187,48 @@ class TkColorSchemeEditor(Frame):
             except Exception as e:
                 msg = f"{type(e)}: {e}"
 
-        self.message.config(text=msg)
+        #self.message.config(text=msg)
         if op == "key":
             return True
         return valid
 
+    def _load_colors(self, month):
+        for i, color_category in enumerate(self.color_categories):
+            cmyk = color_category.cmyk
+            color_name = str.format(color_category.color_names[0], month)
+            try:
+                cmyk = getColor(color_name)
+            except NotFoundError:
+                messagebox.showerror(
+                    message=f"Colour {color_name} not found in the document.")
+                self.master.destroy()
+            color_category.cmyk = cmyk
+
+            self._set_row_entries(i, cmyk)
+
+    def _set_row_entries(self, row_i: int, cmyk: tuple):
+        for ci in range(4):
+            self.vars[row_i][ci].set(int(100*int(cmyk[ci])/255))
+
+    def _on_select_month(self, *args):
+        try:
+            month = self.months.index(args[0]) + 1
+        except ValueError:
+            messagebox.showerror(message=f"Unknown month {args[0]}.")
+            return
+        self.current_month = month
+        self._load_colors(month)
+
     def apply_color(self):
-        # Get the selected color from the color chooser
-        # Update the colored rectangles or perform any other actions
-        messagebox.showinfo(
-            message=f"Main colour c {self.vars[0][0].get()}, m {self.vars[0][1].get()}, y {self.vars[0][2].get()}, k {self.vars[0][3].get()}"
-        )
+        color_category = self.color_categories[self.current_month - 1]
+        for color_name_pattern in color_category.color_names:
+            color_name = str.format(color_name_pattern, self.current_month)
+            try:
+                changeColorCMYK(color_name, )
 
     def reset_color(self):
-        # Reset the color values to default or initial values
-        # You can implement this based on your needs
-        pass
+        for i, color_category in enumerate(self.color_categories):
+            self._set_row_entries(i, color_category.cmyk)
 
     def close_dialog(self):
         self.master.destroy()
