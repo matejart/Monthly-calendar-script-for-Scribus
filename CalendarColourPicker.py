@@ -5,6 +5,7 @@ try:
     from scribus import (
         changeColorCMYK,
         defineColorCMYK,
+        defineColorRGB,
         getColor,
         getColorAsRGB,
         haveDoc,
@@ -21,7 +22,7 @@ except ImportError:
 
 try:
     import tkinter as tk
-    from tkinter import Frame, messagebox
+    from tkinter import colorchooser, Frame, messagebox
 except ImportError:
     print("This script requires Python Tkinter properly installed.")
     messageBox('Script failed',
@@ -116,6 +117,9 @@ class TkColorSchemeEditor(Frame):
             color_rect.grid(row=i+1, column=1)
             self.rects.append(color_rect)
 
+            color_rect.bind("<Button-1>",
+                            lambda event, category_i=i: self.pick_color(event, category_i))
+
             # Input boxes for CMYK values
             cyan_var = tk.StringVar(value="0", name=f"cyan_{i + 1}")
             magenta_var = tk.StringVar(value="0", name=f"magenta_{i + 1}")
@@ -177,10 +181,10 @@ class TkColorSchemeEditor(Frame):
                 msg = f"{msg}: {cmyk}"
 
                 defineColorCMYK(TkColorSchemeEditor.TEMPORARY_COLOR,
-                                int(int(cmyk["c"])/100*255),
-                                int(int(cmyk["m"])/100*255),
-                                int(int(cmyk["y"])/100*255),
-                                int(int(cmyk["k"])/100*255))
+                                int(round(int(cmyk["c"])/100*255)),
+                                int(round(int(cmyk["m"])/100*255)),
+                                int(round(int(cmyk["y"])/100*255)),
+                                int(round(int(cmyk["k"])/100*255)))
                 (r, g, b) = getColorAsRGB(TkColorSchemeEditor.TEMPORARY_COLOR)
 
                 self.rects[row_n].config(background=f"#{r:02x}{g:02x}{b:02x}")
@@ -210,6 +214,14 @@ class TkColorSchemeEditor(Frame):
         for ci in range(4):
             self.vars[row_i][ci].set(int(100*int(cmyk[ci])/255))
 
+    def _get_row_entries(self, row_i: int) -> tuple:
+        return tuple(
+            [
+                int(round(int(self.vars[row_i][ci].get())*2.55))
+                for ci in range(4)
+            ]
+        )
+
     def _on_select_month(self, *args):
         try:
             month = self.months.index(args[0]) + 1
@@ -218,6 +230,20 @@ class TkColorSchemeEditor(Frame):
             return
         self.current_month = month
         self._load_colors(month)
+
+    def pick_color(self, event, category_i: int):
+        try:
+            source = event.widget
+            rgb = colorchooser.askcolor(source.cget("background"))
+            if rgb[0] is not None:
+                self.message.config(text=f"{rgb[0]}")
+                defineColorRGB(TkColorSchemeEditor.TEMPORARY_COLOR, *rgb[0])
+                cmyk = getColor(TkColorSchemeEditor.TEMPORARY_COLOR)
+
+                self.color_categories[category_i].cmyk = cmyk
+                self._set_row_entries(category_i, cmyk)
+        except Exception as e:
+            self.message.config(text=f"{e}")
 
     def apply_color(self):
         color_category = self.color_categories[self.current_month - 1]
