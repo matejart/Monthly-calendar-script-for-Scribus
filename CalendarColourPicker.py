@@ -247,11 +247,22 @@ class TkColorSchemeEditor(Frame):
             self.message.config(text=f"{e}")
 
     def apply_color(self):
-        color_category = self.color_categories[self.current_month - 1]
-        for color_name_pattern in color_category.color_names:
-            color_name = str.format(color_name_pattern, self.current_month)
+        for i, color_category in enumerate(self.color_categories):
+            self.message.config(text=f"{i}: {color_category.name}")
             try:
-                changeColorCMYK(color_name, )
+                cmyk = self._get_row_entries(row_i=i)
+            except Exception as e:
+                self.message.config(text=f"{e}")
+            self.message.config(text=f"{cmyk}")
+            for color_name_pattern in color_category.color_names:
+                color_name = str.format(color_name_pattern, self.current_month)
+                try:
+                    changeColorCMYK(color_name, *cmyk)
+                except NotFoundError:
+                    messagebox.showerror(
+                        message=f"Colour {color_name} not found in the document.")
+                except Exception as e:
+                    self.message.config(text=f"{e}")
 
     def reset_color(self):
         for i, color_category in enumerate(self.color_categories):
