@@ -50,6 +50,7 @@ class ColorCategory:
                 cmyk=(0, 0, 0, 0),
                 color_names=[
                     "txtWeekend-m{}", "txtDayNamesWeekend-m{}", "txtHoliday-m{}",
+                    "fillMonthHeading-m{}"
                 ]
             ),
             ColorCategory(
